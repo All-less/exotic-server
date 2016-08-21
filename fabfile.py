@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fabric.api import sudo, cd, local
+from fabric.api import sudo, cd, local, put, shell_env
 from fabric.contrib.files import exists
 
 
@@ -14,7 +14,6 @@ def start_site():
 def commit(message='', push='n'):
     """
     Usage:
-
         $ fab commit:message='commit message and escaping comma\, this way',push=n
     """
     local("git add . && git commit -m '{}'".format(message))
@@ -22,14 +21,14 @@ def commit(message='', push='n'):
         local("git push")
 
 def put_config_files():
-    pass
+    put('config.py', '/var/www/exotic-server', use_sudo=True)
 
 def deploy():
     stop_site()
-    with cd('/var/opt/exotic-server'):
+    with cd('/var/www/exotic-server'):
         sudo('git pull')
     with cd('/var/www/exotic-server/views'):
-        sudo('proxychains npm install')
         sudo('npm run build')
+    put_config_files()
     start_site()
 

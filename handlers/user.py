@@ -13,6 +13,7 @@ from util import gen_vcode
 from util import check_password
 from util import gen_password
 from tcpserver.pool import DevicePool
+from settings import DeploymentType, DEPLOYMENT
 
 logger = logging.getLogger('server.' + __name__)
 
@@ -97,8 +98,10 @@ class FindPasswordHandler(BaseHandler):
         message['From'] = options.mail_addr
         message['To'] = email
         try:
-            # await mailer.sendmail(options.mail_addr, user_mail, message.as_string())
-            logger.info('New password: {}'.format(password))
+            if DEPLOYMENT == DeploymentType.PRODUCTION:
+                await mailer.sendmail(options.mail_addr, user_mail, message.as_string())
+            else:
+                logger.info('New password: {}'.format(password))
         except Exception as e:
             logger.error('Error: {}'.format(e), exc_info=True)
             self.fail({'err': 'SMTP_ERR'})

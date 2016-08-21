@@ -14,8 +14,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 define("http_port", default=6060, help="port for http service", type=int)
 define("tcp_port", default=6061, help="port for tcp connection", type=int)
-define("config", default="config.py", help="tornado config file")
-define("debug", default=True, help="debug mode")
+define("config", default=None, help="tornado config file", type=str)
 define("mail_addr", default=None, help="email address to send system mail", type=str)
 define("mail_pass", default=None, help="password of the email", type=str)
 define("smtp_host", default=None, help="host address of SMTP server", type=str)
@@ -39,16 +38,16 @@ class DeploymentType:
 if 'DEPLOYMENT_TYPE' in os.environ:
     DEPLOYMENT = os.environ['DEPLOYMENT_TYPE'].upper()
 else:
-    DEPLOYMENT = DeploymentType.PRODUCTION
+    DEPLOYMENT = DeploymentType.DEV
 
 settings = {}
-settings['debug'] = DEPLOYMENT != DeploymentType.PRODUCTION or options.debug
+settings['debug'] = DEPLOYMENT != DeploymentType.PRODUCTION
 settings['static_path'] = MEDIA_ROOT
 settings['cookie_secret'] = "your-cookie-secret"
 settings['xsrf_cookies'] = False
 settings['template_loader'] = tornado.template.Loader(TEMPLATE_ROOT)
 
-SYSLOG_TAG = "exotic_experiment"
+SYSLOG_TAG = "exotic_server"
 SYSLOG_FACILITY = logging.handlers.SysLogHandler.LOG_LOCAL2
 
 # See PEP 391 and logconfig for formatting help.  Each section of LOGGERS
