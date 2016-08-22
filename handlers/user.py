@@ -75,8 +75,10 @@ class EmailHandler(BaseHandler):
         message['From'] = options.mail_addr
         message['To'] = user_mail
         try:
-            # await mailer.sendmail(options.mail_addr, user_mail, message.as_string())
-            logger.info('Verification code: {}'.format(code))
+            if DEPLOYMENT == DeploymentType.PRODUCTION:
+                await mailer.sendmail(options.mail_addr, user_mail, message.as_string())
+            else:
+                logger.info('Verification code: {}'.format(code))
             self.succ({'code': code})
         except Exception as e:
             logger.error('Error: {}'.format(e), exc_info=True)

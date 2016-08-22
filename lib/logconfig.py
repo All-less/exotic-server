@@ -21,6 +21,7 @@ class RemoteAddressFormatter(logging.Formatter):
             record.__dict__['REMOTE_ADDR'] = None
         return logging.Formatter.format(self, record)
 
+
 class UTF8SafeFormatter(RemoteAddressFormatter):
     def __init__(self, fmt=None, datefmt=None, encoding='utf-8'):
         logging.Formatter.__init__(self, fmt, datefmt)
@@ -28,19 +29,21 @@ class UTF8SafeFormatter(RemoteAddressFormatter):
     
     def formatException(self, e):
         r = logging.Formatter.formatException(self, e)
-        if type(r) in [types.StringType]:
-            r = r.decode(self.encoding, 'replace') # Convert to unicode
+        if type(r) == str:
+            r = r.encode(self.encoding, 'replace') # Convert to bytes
         return r
     
     def format(self, record):
         t = RemoteAddressFormatter.format(self, record)
-        if type(t) in [types.UnicodeType]:
-            t = t.encode(self.encoding, 'replace')
+        if type(t) == bytes:
+            t = t.decode(self.encoding, 'replace') # Convert to str
         return t
+
 
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
+
 
 def initialize_logging(syslog_tag, syslog_facility, loggers,
         log_level=logging.INFO, use_syslog=False):

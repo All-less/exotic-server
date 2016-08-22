@@ -6,7 +6,7 @@ import os
 from tornado.options import define, options
 
 import environment
-import logconfig
+from lib import logconfig
 
 # Make filepaths relative to settings.
 path = lambda root,*a: os.path.join(root, *a)
@@ -47,9 +47,6 @@ settings['cookie_secret'] = "your-cookie-secret"
 settings['xsrf_cookies'] = False
 settings['template_loader'] = tornado.template.Loader(TEMPLATE_ROOT)
 
-SYSLOG_TAG = "exotic_server"
-SYSLOG_FACILITY = logging.handlers.SysLogHandler.LOG_LOCAL2
-
 # See PEP 391 and logconfig for formatting help.  Each section of LOGGERS
 # will get merged into the corresponding section of log_settings.py.
 # Handlers and log levels are set up automatically based on LOG_LEVEL and DEBUG
@@ -63,11 +60,10 @@ LOGGERS = {
     }
 }
 
-if settings['debug']:
-    LOG_LEVEL = logging.DEBUG
-else:
-    LOG_LEVEL = logging.INFO
-USE_SYSLOG = DEPLOYMENT != DeploymentType.PRODUCTION
+SYSLOG_TAG = "exotic_server"
+SYSLOG_FACILITY = logging.handlers.SysLogHandler.LOG_LOCAL2
+LOG_LEVEL = logging.DEBUG if settings['debug'] else logging.INFO
+USE_SYSLOG = DEPLOYMENT == DeploymentType.PRODUCTION
 
 logconfig.initialize_logging(SYSLOG_TAG, SYSLOG_FACILITY, LOGGERS,
         LOG_LEVEL, USE_SYSLOG)
