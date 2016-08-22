@@ -6,7 +6,7 @@
   "scripts": {
     "test": "\"\"",
     "start": "NODE_ENV=development webpack --config webpack.config.dev.js --progress --colors --watch --display-error-details",
-    "build": "NODE_ENV=production webpack -p --config webpack.config.prod.js"
+    "build": "NODE_ENV=production webpack -p --progress --config webpack.config.prod.js"
   },
   "repository": {
     "type": "git",

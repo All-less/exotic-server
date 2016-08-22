@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fabric.api import sudo, cd, local, put, shell_env
+from fabric.api import sudo, run, cd, local, put
 from fabric.contrib.files import exists
 
 
@@ -26,9 +26,10 @@ def put_config_files():
 def deploy():
     stop_site()
     with cd('/var/www/exotic-server'):
-        sudo('git pull')
+        run('git checkout .')
+        run('git pull')
     with cd('/var/www/exotic-server/views'):
-        sudo('npm run build')
+        run('npm run build')
     put_config_files()
     start_site()
 
