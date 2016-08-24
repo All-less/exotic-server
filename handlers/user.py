@@ -8,10 +8,11 @@ from tornado import gen
 from async_mailer import mailer
 from handlers.base import BaseHandler
 from models import User
-from util import digest_password
-from util import gen_vcode
-from util import check_password
-from util import gen_password
+from lib.util import digest_password
+from lib.util import gen_vcode
+from lib.util import check_password
+from lib.util import gen_password
+from lib.util import get_authed_list
 from tcpserver.pool import DevicePool
 from settings import DeploymentType, DEPLOYMENT
 
@@ -31,8 +32,9 @@ class LoginHandler(BaseHandler):
             self.fail({'err': 'WRONG_PASSWORD'})
             return
         self.set_secure_cookie('user', email, 0.01)
+        devices = await get_authed_list()
         self.succ({'status': 
-            {'devices': list(DevicePool.get_authed_list())}
+            {'devices': devices}
         })
 
 
@@ -53,8 +55,9 @@ class RegisterHandler(BaseHandler):
             return
         salt, cooked = digest_password(self.get_json_argument('password'))
         await User.insert({'email': email, 'password': cooked, 'salt': salt})
+        devices = await get_authed_list()
         self.succ({'status': 
-            {'devices': list(DevicePool.get_authed_list())}
+            {'devices': devices}
         })
 
 
@@ -131,10 +134,14 @@ class ChangePasswordHandler(BaseHandler):
 
 class StatusHandler(BaseHandler):
 
-    def get(self):
-        if self.get_secure_cookie('user'):
+    async def get(self):
+        user = self.get_secure_cookie('user')
+        if user:
+            user = user.decode('utf-8')
+            devices = await get_authed_list()
             self.succ({'status': 
-                {'devices': list(DevicePool.get_authed_list())}
+                {'devices': devices,
+                 'user': user}
             })
         else:
             self.fail({})

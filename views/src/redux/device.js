@@ -18,6 +18,7 @@ const UPLOAD_PROGRESS = 'Exotic/UPLOAD_PROGRESS';
 const UPLOAD_SUCC = 'Exotic/UPLOAD_SUCC';
 const UPLOAD_FAIL = 'Exotic/UPLOAD_FAIL';
 const UPDATE_DEVICES = 'Exotic/UPDATE_DEVICES';
+const UPDATE_SOCKET = 'Exotic/device/UPDATE_SOCKET';
 
 const BTN_DOWN = 0;
 const BTN_UP = 1;
@@ -145,6 +146,11 @@ export const updateDevices = (list) => ({
   list
 });
 
+export const updateSocket = (device_id) => ({
+  type: UPDATE_SOCKET,
+  device_id
+});
+
 export default (state=init, action) => {
   const switches = Array(...state.switches);
   const buttons = Array(...state.buttons);
@@ -230,6 +236,11 @@ export default (state=init, action) => {
     return {
       ...state,
       list: action.list
+    };
+  case UPDATE_SOCKET:
+    return {
+      ...state,
+      device_id: action.device_id
     };
   default:
     return state;

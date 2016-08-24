@@ -1,7 +1,7 @@
 import store from './store';
 import { push } from 'react-router-redux';
 
-import { updateDevices } from './device';
+import { updateDevices, updateSocket } from './device';
 
 const CHANGE_FORM = 'Exotic/account/CHANGE_FORM';
 const VERIFY_EMAIL = 'Exotic/account/VERIFY_EMAIL';
@@ -48,12 +48,14 @@ export const vcodeCountdown = () => ({
 
 export const register = (email, password) => ({
   types: [REGISTER, REGISTER_SUCC, REGISTER_FAIL],
-  promise: (client) => client.post('/api/register', { email, password })
+  promise: (client) => client.post('/api/register', { email, password }),
+  email
 });
 
 export const login = (email, password) => ({
   types: [LOGIN, LOGIN_SUCC, LOGIN_FAIL],
-  promise: (client) => client.post('/api/login', { email, password })
+  promise: (client) => client.post('/api/login', { email, password }),
+  email
 });
 
 export const findPassword = (email) => ({
@@ -138,12 +140,14 @@ export default (state=init, action) => {
         return {
           ...state,
           registering: false,
+          user: action.email,
           reg_msg: '当前无可用设备。'
         };
       } else {
         return {
           ...state,
-          registering: false
+          registering: false,
+          user: action.email
         };
       }
     case REGISTER_FAIL:
@@ -166,12 +170,14 @@ export default (state=init, action) => {
         return {
           ...state,
           loggingIn: false,
+          user: action.email,
           login_msg: '当前无可用设备。'
         };
       } else {
         return {
           ...state,
-          loggingIn: false
+          loggingIn: false,
+          user: action.email
         };
       }
     case LOGIN_FAIL:
@@ -231,10 +237,19 @@ export default (state=init, action) => {
         setTimeout(() => {
           const len = action.result.status.devices.length;
           const index = Math.floor(Math.random() * len);
-          store.dispatch(push(`device/${action.result.status.devices[index]}`));
+          const device_id = action.result.status.devices[index];
+          store.dispatch(push(`device/${device_id}`));
         }, 0);
+      } else {
+        if (action.result.status.devices.length === 0 &&
+            location.pathname !== '/') {
+          setTimeout(() => { store.dispatch(push('/')); }, 0);
+        }
       }
-      return state;
+      return {
+        ...state,
+        user: action.result.status.user
+      };
     case LOAD_STATUS_FAIL:
     case LOGOUT_SUCC:
       if (location.pathname !== '/') {

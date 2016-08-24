@@ -14,6 +14,8 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 define("http_port", default=6060, help="port for http service", type=int)
 define("tcp_port", default=6061, help="port for tcp connection", type=int)
+define("proxy_port_start", default=7070, help="port for proxy messages", type=int)
+define("proxy_port_pairs", default=1, help="number of port pairs for proxy", type=int)
 define("config", default=None, help="tornado config file", type=str)
 define("mail_addr", default=None, help="email address to send system mail", type=str)
 define("mail_pass", default=None, help="password of the email", type=str)
@@ -47,6 +49,10 @@ settings['cookie_secret'] = "your-cookie-secret"
 settings['xsrf_cookies'] = False
 settings['template_loader'] = tornado.template.Loader(TEMPLATE_ROOT)
 
+SYSLOG_TAG = "exotic_server"
+SYSLOG_FACILITY = logging.handlers.SysLogHandler.LOG_LOCAL2
+LOG_LEVEL = logging.DEBUG if settings['debug'] else logging.INFO
+USE_SYSLOG = DEPLOYMENT == DeploymentType.PRODUCTION
 # See PEP 391 and logconfig for formatting help.  Each section of LOGGERS
 # will get merged into the corresponding section of log_settings.py.
 # Handlers and log levels are set up automatically based on LOG_LEVEL and DEBUG
@@ -57,13 +63,11 @@ LOGGERS = {
         'tornado.application': {}, # 
         'tornado.access': {},      # enable default logging
         'tornado.general': {},     #
+        'server': {
+            'level': LOG_LEVEL
+        }
     }
 }
-
-SYSLOG_TAG = "exotic_server"
-SYSLOG_FACILITY = logging.handlers.SysLogHandler.LOG_LOCAL2
-LOG_LEVEL = logging.DEBUG if settings['debug'] else logging.INFO
-USE_SYSLOG = DEPLOYMENT == DeploymentType.PRODUCTION
 
 logconfig.initialize_logging(SYSLOG_TAG, SYSLOG_FACILITY, LOGGERS,
         LOG_LEVEL, USE_SYSLOG)

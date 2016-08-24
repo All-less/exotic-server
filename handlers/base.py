@@ -45,7 +45,6 @@ class BaseHandler(tornado.web.RequestHandler):
                          "'%s' in %s" % (default, name, self.request.arguments))
             return default
         arg = self.request.arguments[name]
-        logger.debug("Found '%s': %s in JSON arguments" % (name, arg))
         return arg
 
     def set_default_headers(self):
@@ -56,9 +55,6 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         # TODO
         pass
-
-    def prepare(self):
-        logger.debug("{method} {uri} {body}".format(method=self.request.method, uri=self.request.uri, body=self.request.body))
 
     def succ(self, data):
         self.write({'code': 0, 'data': data})

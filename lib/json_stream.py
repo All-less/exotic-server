@@ -9,7 +9,7 @@ from tornado.escape import utf8
 
 from .constant import *
 
-logger = logging.getLogger('tcpserver.' + __name__)
+logger = logging.getLogger('server.' + __name__)
 
 
 class JsonStream:

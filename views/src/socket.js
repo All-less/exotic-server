@@ -23,56 +23,66 @@ const TYPE_INFO = 3;
 const switchTimeout = Array(4).fill(undefined);
 const buttonTimeout = Array(4).fill(undefined);
 
-/*
-const socket = new WebSocket(`ws://${location.host}/socket${location.pathname}`);
-*/
-const socket = {};
+let socket = {};
+let device_id = null;
 
-/* The last sent comment. Store it in order to filter broadcast from the server. */
-let lastComment;
-
-socket.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  switch (data.type) {
-  case TYPE_STATUS:
-    switch (data.status) {
-    case 'switch_on':
-      store.dispatch(openSwitchSucc(data.id));
-      clearTimeout(switchTimeout[data.id])
-      break;
-    case 'switch_off':
-      store.dispatch(closeSwitchSucc(data.id));
-      clearTimeout(switchTimeout[data.id]);
-      break;
-    case 'button_pressed':
-      store.dispatch(pressButtonSucc(data.id));
-      clearTimeout(buttonTimeout[data.id]);
-      break;
-    case 'button_released':
-      store.dispatch(releaseButtonSucc(data.id));
-      clearTimeout(buttonTimeout[data.id]);
-      break;
-    }
-  case TYPE_INFO:
-    switch (data.info) {
-    case 'user_changed':
-      if (data.user === config.nickname) {
-        store.dispatch(fpgaAcquired());
-      } else if (data.user === null) {
-        store.dispatch(fpgaReleased())
-      }
-      break;
-    case 'broadcast':
-      if (data.content !== lastComment)
-        $("#danmu").danmu("addDanmu", {
-          text: data.content,
-          color: "white", 
-          size: 1, 
-          position: 0, 
-          time: $('#danmu').data("nowTime")+10
-        });
-    }
+store.subscribe(() => {
+  const new_device_id = location.pathname.split('/').pop();
+  if (new_device_id !== device_id) {
+    device_id = new_device_id;
+    reconnect_socket();
   }
+});
+
+const reconnect_socket = () => {
+  if (!device_id) return
+  socket = new WebSocket(`ws://${location.host}/socket/${device_id}`);
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    switch (data.type) {
+    case TYPE_STATUS:
+      switch (data.status) {
+      case 'switch_on':
+        store.dispatch(openSwitchSucc(data.id));
+        clearTimeout(switchTimeout[data.id])
+        break;
+      case 'switch_off':
+        store.dispatch(closeSwitchSucc(data.id));
+        clearTimeout(switchTimeout[data.id]);
+        break;
+      case 'button_pressed':
+        store.dispatch(pressButtonSucc(data.id));
+        clearTimeout(buttonTimeout[data.id]);
+        break;
+      case 'button_released':
+        store.dispatch(releaseButtonSucc(data.id));
+        clearTimeout(buttonTimeout[data.id]);
+        break;
+      }
+    case TYPE_INFO:
+      switch (data.info) {
+      case 'user_changed':
+        if (data.user === store.getState().account.user) {
+          store.dispatch(fpgaAcquired());
+        } else if (data.user === null) {
+          store.dispatch(fpgaReleased())
+        }
+        break;
+      case 'broadcast':
+        /*
+        if (data.content !== lastComment)
+          $("#danmu").danmu("addDanmu", {
+            text: data.content,
+            color: "white", 
+            size: 1, 
+            position: 0, 
+            time: $('#danmu').data("nowTime")+10
+          });
+        */
+        break;
+      }
+    }
+  };
 };
 
 const send = (obj) => {
