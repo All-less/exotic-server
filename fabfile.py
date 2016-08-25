@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fabric.api import sudo, run, cd, local, put
+from fabric.api import sudo, run, cd, local, put, get
 from fabric.contrib.files import exists
 
 
@@ -33,3 +33,6 @@ def deploy():
     put_config_files()
     start_site()
 
+def backup_config():
+    get('/etc/nginx/nginx.conf', '/tmp/exotic-server', use_sudo=True)
+    get('/etc/supervisor/conf.d/exotic.conf', '/tmp/exotic-server', use_sudo=True)
