@@ -8,6 +8,7 @@ import { routerReducer as routing } from 'react-router-redux';
 
 import device from './device';
 import account from './account';
+import barrage from './barrage';
 
 import qwest from 'qwest';
 
@@ -73,7 +74,7 @@ const _ajaxMiddleware = ajaxMiddleware(ajax);
 const _routerMiddleware = routerMiddleware(browserHistory);
 
 export default createStore(
-  combineReducers({account, device, routing, reduxAsyncConnect}), 
+  combineReducers({account, device, barrage, routing, reduxAsyncConnect}), 
   compose(
     applyMiddleware(_ajaxMiddleware, _routerMiddleware),
     process.env.NODE_ENV === 'development' && window.devToolsExtension ? 

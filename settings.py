@@ -3,6 +3,7 @@ import logging
 import tornado
 import tornado.template
 import os
+from pathlib import Path
 from tornado.options import define, options
 
 import environment
@@ -23,6 +24,7 @@ define("mail_pass", default=None, help="password of the email", type=str)
 define("smtp_host", default=None, help="host address of SMTP server", type=str)
 define("smtp_port", default=None, help="port address of SMTP server", type=int)
 define("salt_pos", default=None, help="position to mix salt and password", type=int)
+define("tmp_dir", default="/tmp/exotic-server", help="location for temporary files", type=str)
 tornado.options.parse_command_line()
 
 MEDIA_ROOT = path(ROOT, 'static')
@@ -75,3 +77,6 @@ logconfig.initialize_logging(SYSLOG_TAG, SYSLOG_FACILITY, LOGGERS,
 
 if options.config:
     tornado.options.parse_config_file(options.config)
+
+if not Path(options.tmp_dir).exists():
+    Path(options.tmp_dir).mkdir(parents=True, exist_ok=True)

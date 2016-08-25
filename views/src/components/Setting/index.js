@@ -1,8 +1,13 @@
-'use strict'
 import React from 'react';
+import { connect } from 'react-redux';
 
 import style from './style';
 
+@connect(
+  (state) => ({
+    device_list: state.device.list
+  })
+)
 class Setting extends React.Component {
   render() {
     return (
@@ -38,10 +43,11 @@ class Setting extends React.Component {
         <p className={style.title}>切换设备</p>
         <div className={style.device_wrapper}>
           <select name="device" className={style.device_selector}>
-          <option value="1">Device 0</option>
-          <option value="2">Device 1</option>
-          <option value="3">Device 2</option>
-          <option value="4">Device 3</option>
+          { 
+            this.props.device_list.map((e, i) => (
+              <option value={i}>{e}</option>
+            ))
+          }
           </select>
         </div>
         <div className={style.button_wrapper}>

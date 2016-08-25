@@ -1,7 +1,7 @@
-'use strict';
 import React from 'react';
 
 import FpgaSimulation from '../FpgaSimulation';
+import Barrage from '../Barrage';
 import style from './style';
 
 class Simulation extends React.Component {
@@ -11,7 +11,7 @@ class Simulation extends React.Component {
       <div className={style.right}>
         <div className={style.border}>
           <FpgaSimulation />
-          <div className={style.bullet} />
+          <Barrage />
         </div>
       </div>
     );

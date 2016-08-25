@@ -15,6 +15,7 @@ import {
   fpgaAcquired,
   fpgaReleased
 } from './redux/device';
+import { addBullet } from './redux/barrage';
 
 const TYPE_ACTION = 0;
 const TYPE_STATUS = 1;
@@ -39,6 +40,7 @@ const reconnect_socket = () => {
   socket = new WebSocket(`ws://${location.host}/socket/${device_id}`);
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    console.log(data);
     switch (data.type) {
     case TYPE_STATUS:
       switch (data.status) {
@@ -69,16 +71,7 @@ const reconnect_socket = () => {
         }
         break;
       case 'broadcast':
-        /*
-        if (data.content !== lastComment)
-          $("#danmu").danmu("addDanmu", {
-            text: data.content,
-            color: "white", 
-            size: 1, 
-            position: 0, 
-            time: $('#danmu').data("nowTime")+10
-          });
-        */
+        store.dispatch(addBullet(data.content));
         break;
       }
     }
@@ -140,7 +133,6 @@ const remote = {
     );
   },
   broadcast: (content) => {
-    lastComment = content;
     send({
       type: TYPE_ACTION,
       action: 'broadcast',

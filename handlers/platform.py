@@ -34,6 +34,8 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
         logger.info('200 WebSocket /platform/{} from user {}.'.format(
                     device_id, self.user))
         rpi = yield Rpi.find_one({'device_id': device_id})
+        if not rpi:  # invalid device_id
+            self.close()
         yield self.init_pubsub(rpi['recv_port'], rpi['send_port'], device_id.encode('utf-8'))
 
     @gen.coroutine
@@ -51,6 +53,12 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
             if cur_time - self.last_comment_time < 2:
                 return  # discard the message
             self.last_comment_time = cur_time
+            dict_.pop('action')
+            dict_.update({
+                'code': CODE_BROADCAST_INFO,
+                'type': TYPE_INFO,
+                'info': 'broadcast'
+            })
         if code == CODE_ACQUIRE:
             dict_['user'] = self.user
         logger.debug('Pubsub: send {}'.format(dict_))
@@ -61,9 +69,9 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
         code = embed_code(dict_)
         if code == CODE_USER_CHANGE:
             self.is_operator = dict_.get('user', None) == self.user
-        if code in [CODE_USER_CHANGE, CODE_BROADCAST]:
+        if code in [CODE_USER_CHANGE, CODE_BROADCAST_INFO]:
             logger.debug('WebSocket: send {}'.format(dict_))
             self.write_message(json.dumps(dict_))
 
     def on_close(self):
-        pass
+        print('closed')

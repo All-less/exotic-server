@@ -13,10 +13,7 @@ const CLOSE_SWITCH_SUCC = 'Exotic/CLOSE_SWITCH_SUCC';
 const CLOSE_SWITCH_FAIL = 'Exotic/CLOSE_SWITCH_FAIL';
 const FPGA_ACQUIRED = 'Exotic/FPGA_ACQUIRED';
 const FPGA_RELEASED = 'Exotic/FPGA_RELEASED';
-const UPLOAD_START = 'Exotic/UPLOAD_START';
-const UPLOAD_PROGRESS = 'Exotic/UPLOAD_PROGRESS';
-const UPLOAD_SUCC = 'Exotic/UPLOAD_SUCC';
-const UPLOAD_FAIL = 'Exotic/UPLOAD_FAIL';
+const SET_UPLOAD_STATUS = 'Exotic/device/SET_UPLOAD_STATUS';
 const UPDATE_DEVICES = 'Exotic/UPDATE_DEVICES';
 const UPDATE_SOCKET = 'Exotic/device/UPDATE_SOCKET';
 
@@ -42,15 +39,6 @@ const init = {
   setting: false,
   occupied: false,
   uploadStatus: null
-};
-
-const next = {
-  '...' : ' ..',
-  ' ..' : '  .',
-  '  .' : '   ',
-  '   ' : '.  ',
-  '.  ' : '.. ',
-  '.. ' : '...'
 };
 
 export const toggleSetting = () => ({
@@ -125,20 +113,9 @@ export const fpgaReleased = () => ({
   type: FPGA_RELEASED
 });
 
-export const startUpload = () => ({
-  type: UPLOAD_START
-});
-
-export const updateUploadProgress = () => ({
-  type: UPLOAD_PROGRESS
-});
-
-export const uploadSucceed = () => ({
-  type: UPLOAD_SUCC
-});
-
-export const uploadFail = () => ({
-  type: UPLOAD_FAIL
+export const setUploadStatus = (status) => ({
+  type: SET_UPLOAD_STATUS,
+  status
 });
 
 export const updateDevices = (list) => ({
@@ -212,25 +189,10 @@ export default (state=init, action) => {
       ...state,
       occupied: false
     };
-  case UPLOAD_START:
+  case SET_UPLOAD_STATUS:
     return {
       ...state,
-      uploadStatus: 'Uploading file ...'
-    };
-  case UPLOAD_PROGRESS:
-    return {
-      ...state,
-      uploadStatus: 'Uploading file ' + next[state.uploadStatus.slice(-3)]
-    };
-  case UPLOAD_SUCC:
-    return {
-      ...state,
-      uploadStatus: 'Uploading file succeeded.'
-    };
-  case UPLOAD_FAIL:
-    return {
-      ...state,
-      uploadStatus: 'Uploading file failed.'
+      uploadStatus: action.status
     };
   case UPDATE_DEVICES:
     return {

@@ -1,23 +1,17 @@
-'use strict'
 import React from 'react';
 import { connect } from 'react-redux';
-import {
-  startUpload,
-  uploadSucceed,
-  uploadFail,
-  updateUploadProgress
-} from '../redux/device';
+import { setUploadStatus } from '../../redux/device';
+
+import style from './style';
 
 @connect(
   (state) => ({
     occupied: state.device.occupied,
-    status: state.device.uploadStatus
+    status: state.device.uploadStatus,
+    device_id: state.device.device_id
   }),
   {
-    startUpload,
-    uploadSucceed,
-    uploadFail,
-    updateUploadProgress
+    setUploadStatus
   }
 )
 class Upload extends React.Component {
@@ -31,19 +25,19 @@ class Upload extends React.Component {
   };
 
   handleUpload = () => {
+    if (!this.state.file) return;
+
     const formData = new FormData();
-    formData.append('file', $('#input_file')[0].files[0]);
+    formData.append('file', this.refs.inputFile.files[0]);
     formData.append('filetype', 'bit');
+    formData.append('device_id', location.pathname.split('/').pop());
+
     const req = new XMLHttpRequest();
-    req.addEventListener("abort", this.props.uploadFail);
-    req.addEventListener("error", this.props.uploadFail);
-    req.addEventListener("loadend", this.props.uploadSucceed);
-    req.addEventListener("loadstart", this.props.startUpload);
-    req.addEventListener("progress", () => {
-      console.log('in progress');
-      this.props.updateUploadProgress();
-    });
-    req.open('post', `file`);
+    req.addEventListener("abort", this.props.setUploadStatus.bind(null, '上传失败'));
+    req.addEventListener("error", this.props.setUploadStatus.bind(null, '上传失败'));
+    req.addEventListener("loadend", this.props.setUploadStatus.bind(null, '上传成功'));
+    req.addEventListener("loadstart", this.props.setUploadStatus.bind(null, '正在上传'));
+    req.open('post', '/api/upload');
     req.send(formData);
   };
 
@@ -55,7 +49,7 @@ class Upload extends React.Component {
     const color = this.props.occupied ? '#fff' : '#777';
     return (
       <div>
-        <p style={{color: color }}>Bit 文件 <span id="status">{this.props.status}</span></p>
+        <p style={{color: color}}>Bit 文件 <span id="status">{this.props.status}</span></p>
         <div id="bitfile_contain">
           <ul id="about_file">
             <li id="path_for_file" style={{color: color, borderColor: color}}>
@@ -64,6 +58,7 @@ class Upload extends React.Component {
             <li id="file_input" style={{backgroundColor: color, borderColor: color}}>
               <input type="file" 
                      id="input_file" 
+                     ref="inputFile"
                      onChange={this.handleChange} />
               <span id="file_hint">···</span>
             </li>
