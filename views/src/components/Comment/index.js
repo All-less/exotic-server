@@ -1,13 +1,27 @@
 import React from 'react';
+import { connect } from 'react-redux';
+
+import { displayError } from '../../redux/device';
 import remote from '../../socket';
 
 import style from './style';
 
-
+@connect(
+  f => f,
+  {
+    displayError
+  }
+)
 class Comment extends React.Component {
 
   handleClick() {
-    remote.broadcast(this.refs.comment.value);
+    const content = this.refs.comment.value;
+    if (content.length > 120) 
+      this.props.displayError('评论内容不得长于120字符。');
+    else if (content.length <= 0)
+      this.props.displayError('请输入评论内容。');
+    else
+      remote.broadcast(content);
     this.refs.comment.value = ''
   }
 

@@ -13,7 +13,8 @@ import {
   releaseButtonSucc,
   releaseButtonFail,
   fpgaAcquired,
-  fpgaReleased
+  fpgaReleased,
+  displayError
 } from './redux/device';
 import { addBullet } from './redux/barrage';
 
@@ -37,10 +38,14 @@ store.subscribe(() => {
 
 const reconnect_socket = () => {
   if (!device_id) return
-  socket = new WebSocket(`ws://${location.host}/socket/${device_id}`);
+  try {
+    socket = new WebSocket(`ws://${location.host}/socket/${device_id}`);
+  } catch (e) {
+    store.dispatch(displayError('无法连接服务器，请重试'));
+    return
+  }
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log(data);
     switch (data.type) {
     case TYPE_STATUS:
       switch (data.status) {

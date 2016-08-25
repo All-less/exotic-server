@@ -1,3 +1,5 @@
+import store from './store';
+
 const TOGGLE_SETTING = 'Exotic/TOGGLE_SETTING';
 const PRESS_BTN = 'Exotic/TRY_PRESS_BTN';
 const PRESS_BTN_SUCC = 'Exotic/PRESS_BTN_SUCC';
@@ -16,6 +18,8 @@ const FPGA_RELEASED = 'Exotic/FPGA_RELEASED';
 const SET_UPLOAD_STATUS = 'Exotic/device/SET_UPLOAD_STATUS';
 const UPDATE_DEVICES = 'Exotic/UPDATE_DEVICES';
 const UPDATE_SOCKET = 'Exotic/device/UPDATE_SOCKET';
+const DISPLAY_ERROR = 'Exotic/device/DISPLAY_ERROR';
+const SET_ERROR = 'Exotic/device/SET_ERROR';
 
 const BTN_DOWN = 0;
 const BTN_UP = 1;
@@ -128,6 +132,16 @@ export const updateSocket = (device_id) => ({
   device_id
 });
 
+export const displayError = (error) => ({
+  type: DISPLAY_ERROR,
+  error
+});
+
+const setError = (error) => ({
+  type: SET_ERROR,
+  error
+});
+
 export default (state=init, action) => {
   const switches = Array(...state.switches);
   const buttons = Array(...state.buttons);
@@ -204,6 +218,19 @@ export default (state=init, action) => {
       ...state,
       device_id: action.device_id
     };
+  case DISPLAY_ERROR:
+    setTimeout(() => {
+      store.dispatch(setError(action.error));
+    }, 50);
+    return {
+      ...state,
+      error: null  /* clear previous error message */
+    };
+  case SET_ERROR:
+    return {
+      ...state,
+      error: action.error
+    }
   default:
     return state;
   }

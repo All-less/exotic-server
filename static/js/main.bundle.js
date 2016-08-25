@@ -40046,15 +40046,22 @@
 
 /***/ },
 /* 681 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.displayError = exports.updateSocket = exports.updateDevices = exports.setUploadStatus = exports.fpgaReleased = exports.fpgaAcquired = exports.closeSwitchFail = exports.closeSwitchSucc = exports.closeSwitch = exports.openSwitchFail = exports.openSwitchSucc = exports.openSwitch = exports.releaseButtonFail = exports.releaseButtonSucc = exports.releaseButton = exports.pressButtonFail = exports.pressButtonSucc = exports.pressButton = exports.toggleSetting = exports.state = undefined;
 	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _store = __webpack_require__(680);
+	
+	var _store2 = _interopRequireDefault(_store);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
@@ -40076,6 +40083,8 @@
 	var SET_UPLOAD_STATUS = 'Exotic/device/SET_UPLOAD_STATUS';
 	var UPDATE_DEVICES = 'Exotic/UPDATE_DEVICES';
 	var UPDATE_SOCKET = 'Exotic/device/UPDATE_SOCKET';
+	var DISPLAY_ERROR = 'Exotic/device/DISPLAY_ERROR';
+	var SET_ERROR = 'Exotic/device/SET_ERROR';
 	
 	var BTN_DOWN = 0;
 	var BTN_UP = 1;
@@ -40224,6 +40233,20 @@
 	  };
 	};
 	
+	var displayError = exports.displayError = function displayError(error) {
+	  return {
+	    type: DISPLAY_ERROR,
+	    error: error
+	  };
+	};
+	
+	var setError = function setError(error) {
+	  return {
+	    type: SET_ERROR,
+	    error: error
+	  };
+	};
+	
 	exports.default = function () {
 	  var state = arguments.length <= 0 || arguments[0] === undefined ? init : arguments[0];
 	  var action = arguments[1];
@@ -40290,6 +40313,17 @@
 	    case UPDATE_SOCKET:
 	      return _extends({}, state, {
 	        device_id: action.device_id
+	      });
+	    case DISPLAY_ERROR:
+	      setTimeout(function () {
+	        _store2.default.dispatch(setError(action.error));
+	      }, 50);
+	      return _extends({}, state, {
+	        error: null /* clear previous error message */
+	      });
+	    case SET_ERROR:
+	      return _extends({}, state, {
+	        error: action.error
 	      });
 	    default:
 	      return state;
@@ -40658,7 +40692,7 @@
 	      var index = _lodash2.default.findIndex(channels, function (e) {
 	        return !e.speed;
 	      });
-	      if (index < 1) {
+	      if (index < 0) {
 	        /* no channel available */
 	        var min = Number.MAX_SAFE_INTEGER;
 	        for (var i = 0; i < channels.length; i++) {
@@ -82382,9 +82416,13 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
+	var _dec, _class;
+	
 	var _react = __webpack_require__(299);
 	
 	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactRedux = __webpack_require__(472);
 	
 	var _Header = __webpack_require__(932);
 	
@@ -82397,6 +82435,10 @@
 	var _Simulation = __webpack_require__(953);
 	
 	var _Simulation2 = _interopRequireDefault(_Simulation);
+	
+	var _Message = __webpack_require__(966);
+	
+	var _Message2 = _interopRequireDefault(_Message);
 	
 	__webpack_require__(962);
 	
@@ -82412,7 +82454,11 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var DevicePage = function (_React$Component) {
+	var DevicePage = (_dec = (0, _reactRedux.connect)(function (state) {
+	  return {
+	    error: state.device.error
+	  };
+	}), _dec(_class = function (_React$Component) {
 	  _inherits(DevicePage, _React$Component);
 	
 	  function DevicePage() {
@@ -82428,6 +82474,7 @@
 	        'div',
 	        null,
 	        _react2.default.createElement(_Header2.default, null),
+	        this.props.error && _react2.default.createElement(_Message2.default, null),
 	        _react2.default.createElement(
 	          'div',
 	          { id: 'main' },
@@ -82439,8 +82486,7 @@
 	  }]);
 	
 	  return DevicePage;
-	}(_react2.default.Component);
-	
+	}(_react2.default.Component)) || _class);
 	exports.default = DevicePage;
 
 /***/ },
@@ -82644,10 +82690,14 @@
 	
 	var reconnect_socket = function reconnect_socket() {
 	  if (!device_id) return;
-	  socket = new WebSocket('ws://' + location.host + '/socket/' + device_id);
+	  try {
+	    socket = new WebSocket('ws://' + location.host + '/socket/' + device_id);
+	  } catch (e) {
+	    _store2.default.dispatch((0, _device.displayError)('无法连接服务器，请重试'));
+	    return;
+	  }
 	  socket.onmessage = function (event) {
 	    var data = JSON.parse(event.data);
-	    console.log(data);
 	    switch (data.type) {
 	      case TYPE_STATUS:
 	        switch (data.status) {
@@ -83421,9 +83471,15 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
+	var _dec, _class;
+	
 	var _react = __webpack_require__(299);
 	
 	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactRedux = __webpack_require__(472);
+	
+	var _device = __webpack_require__(681);
 	
 	var _socket = __webpack_require__(935);
 	
@@ -83441,7 +83497,11 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var Comment = function (_React$Component) {
+	var Comment = (_dec = (0, _reactRedux.connect)(function (f) {
+	  return f;
+	}, {
+	  displayError: _device.displayError
+	}), _dec(_class = function (_React$Component) {
 	  _inherits(Comment, _React$Component);
 	
 	  function Comment() {
@@ -83453,7 +83513,8 @@
 	  _createClass(Comment, [{
 	    key: 'handleClick',
 	    value: function handleClick() {
-	      _socket2.default.broadcast(this.refs.comment.value);
+	      var content = this.refs.comment.value;
+	      if (content.length > 120) this.props.displayError('评论内容不得长于120字符。');else if (content.length <= 0) this.props.displayError('请输入评论内容。');else _socket2.default.broadcast(content);
 	      this.refs.comment.value = '';
 	    }
 	  }, {
@@ -83492,8 +83553,7 @@
 	  }]);
 	
 	  return Comment;
-	}(_react2.default.Component);
-	
+	}(_react2.default.Component)) || _class);
 	exports.default = Comment;
 
 /***/ },
@@ -84184,6 +84244,115 @@
 	
 	// exports
 
+
+/***/ },
+/* 966 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _dec, _class;
+	
+	var _react = __webpack_require__(299);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactRedux = __webpack_require__(472);
+	
+	var _style = __webpack_require__(967);
+	
+	var _style2 = _interopRequireDefault(_style);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Message = (_dec = (0, _reactRedux.connect)(function (state) {
+	  return {
+	    error: state.device.error
+	  };
+	}), _dec(_class = function (_React$Component) {
+	  _inherits(Message, _React$Component);
+	
+	  function Message() {
+	    _classCallCheck(this, Message);
+	
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Message).apply(this, arguments));
+	  }
+	
+	  _createClass(Message, [{
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'div',
+	        { className: _style2.default.container },
+	        _react2.default.createElement(
+	          'span',
+	          { className: _style2.default.content },
+	          _react2.default.createElement('i', { className: 'fa fa-exclamation-triangle', 'aria-hidden': 'true' }),
+	          "  " + this.props.error
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Message;
+	}(_react2.default.Component)) || _class);
+	exports.default = Message;
+
+/***/ },
+/* 967 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(968);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(917)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../../node_modules/css-loader/index.js?modules&importLoaders=1&localIdentName=[name]_[local]_[hash:base64:5]!./../../../node_modules/postcss-loader/index.js?sourceMap!./../../../node_modules/sass-loader/index.js?sourceMap!./style.scss", function() {
+				var newContent = require("!!./../../../node_modules/css-loader/index.js?modules&importLoaders=1&localIdentName=[name]_[local]_[hash:base64:5]!./../../../node_modules/postcss-loader/index.js?sourceMap!./../../../node_modules/sass-loader/index.js?sourceMap!./style.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 968 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(916)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, ".style_container_36Vpu {\n  font-size: 12px;\n  z-index: 10;\n  top: -48px;\n  width: auto;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  -webkit-animation: style_display_2iaVe 5s linear;\n          animation: style_display_2iaVe 5s linear; }\n\n@-webkit-keyframes style_display_2iaVe {\n  0% {\n    top: -48px; }\n  10% {\n    top: 16px; }\n  90% {\n    top: 16px; }\n  100% {\n    top: -48px; } }\n\n@keyframes style_display_2iaVe {\n  0% {\n    top: -48px; }\n  10% {\n    top: 16px; }\n  90% {\n    top: 16px; }\n  100% {\n    top: -48px; } }\n  .style_container_36Vpu .style_content_3iNcO {\n    z-index: 10;\n    position: relative;\n    right: 50%;\n    padding: 8px 16px;\n    border-radius: 5px;\n    border: 1px solid gray;\n    box-shadow: 2px;\n    background: #fff;\n    display: block; }\n", ""]);
+	
+	// exports
+	exports.locals = {
+		"container": "style_container_36Vpu",
+		"display": "style_display_2iaVe",
+		"content": "style_content_3iNcO"
+	};
 
 /***/ }
 /******/ ]);

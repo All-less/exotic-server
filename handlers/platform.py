@@ -73,5 +73,11 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
             logger.debug('WebSocket: send {}'.format(dict_))
             self.write_message(json.dumps(dict_))
 
+    @gen.coroutine
     def on_close(self):
-        print('closed')
+        if self.is_operator:
+            self.pub_json({
+                'code': CODE_RELEASE,
+                'type': TYPE_ACTION,
+                'action': 'release'
+            })

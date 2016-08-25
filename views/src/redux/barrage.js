@@ -32,7 +32,7 @@ export default (state=initialState, action) => {
   switch (action.type) {
     case ADD_BULLET:
       let index = _.findIndex(channels, (e) => (!e.speed));
-      if (index < 1) { /* no channel available */
+      if (index < 0) { /* no channel available */
         let min = Number.MAX_SAFE_INTEGER;
         for (let i = 0; i < channels.length; i++) {
           if (channels[i].left + channels[i].width < min)
