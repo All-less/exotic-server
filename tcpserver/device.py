@@ -94,9 +94,10 @@ class Device(JsonStream, JsonPubsub):
             return {'type': TYPE_INFO, 'info': 'user_changed', 'user': None}
 
     async def on_close(self):
-        if not self.device_id:
+        if not self.device_id:  # device has not been auth'ed yet
             DevicePool.remove_unauth_device(self)
         else:
+            await self.pub_json({'type': TYPE_INFO, 'info': 'fpga_disconnected'})
             logger.info('Device "{}" disconnected.'.format(self.device_id))
             await Rpi.update({'device_id': self.device_id}, 
                              {'$set': {'send_port': 0,

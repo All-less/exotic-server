@@ -20,6 +20,8 @@ const UPDATE_DEVICES = 'Exotic/UPDATE_DEVICES';
 const UPDATE_SOCKET = 'Exotic/device/UPDATE_SOCKET';
 const DISPLAY_ERROR = 'Exotic/device/DISPLAY_ERROR';
 const SET_ERROR = 'Exotic/device/SET_ERROR';
+const CLEAR_ERROR = 'Exotic/device/CLEAR_ERROR';
+const UPDATE_OUTPUT = 'Exotic/device/UPDATE_OUTPUT';
 
 const BTN_DOWN = 0;
 const BTN_UP = 1;
@@ -42,7 +44,9 @@ const init = {
   switches: [SW_OFF, SW_OFF, SW_OFF, SW_OFF],
   setting: false,
   occupied: false,
-  uploadStatus: null
+  uploadStatus: null,
+  led: 0x0000,
+  segs: Array(8).fill(0)
 };
 
 export const toggleSetting = () => ({
@@ -142,6 +146,16 @@ const setError = (error) => ({
   error
 });
 
+const clearError = () => ({
+  type: CLEAR_ERROR
+});
+
+export const updateOutput = (segs, led) => ({
+  type: UPDATE_OUTPUT,
+  segs, 
+  led
+});
+
 export default (state=init, action) => {
   const switches = Array(...state.switches);
   const buttons = Array(...state.buttons);
@@ -222,15 +236,32 @@ export default (state=init, action) => {
     setTimeout(() => {
       store.dispatch(setError(action.error));
     }, 50);
+    if (state.errorTimeout) { /* previous error has not been cleared */
+      clearTimeout(state.errorTimeout);
+    }
     return {
       ...state,
-      error: null  /* clear previous error message */
+      error: null,  /* clear previous error message */
+      errorTimeout: null
     };
   case SET_ERROR:
     return {
       ...state,
-      error: action.error
-    }
+      error: action.error,
+      errorTimeout: setTimeout(() => { store.dispatch(clearError()); }, 10000)
+    };
+  case CLEAR_ERROR:
+    return {
+      ...state,
+      error: null,
+      errorTimeout: null
+    };
+  case UPDATE_OUTPUT:
+    return {
+      ...state,
+      led: action.led,
+      segs: action.segs
+    };
   default:
     return state;
   }

@@ -2,6 +2,8 @@
 import logging
 import time
 import json
+import math
+import random
 
 import zmq
 from zmq.eventloop.future import Context as ZMQContext
@@ -34,7 +36,7 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
         logger.info('200 WebSocket /platform/{} from user {}.'.format(
                     device_id, self.user))
         rpi = yield Rpi.find_one({'device_id': device_id})
-        if not rpi:  # invalid device_id
+        if not rpi or not rpi['recv_port']:  # invalid device_id or device is offline
             self.close()
         yield self.init_pubsub(rpi['recv_port'], rpi['send_port'], device_id.encode('utf-8'))
 
@@ -46,6 +48,15 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
         except Exception as e:
             logger.error('Error occurs during decoding data from WebSocket.\n\
                           {}'.format(e), exc_info=True)
+
+        '''
+        yield self.write_message({
+            'type': TYPE_INFO,
+            'info': 'output_status',
+            'led': math.floor(random.random() * 0xFFFF),
+            'segs': [ math.floor(random.random() * 0x7F) for _ in range(8) ]
+        })
+        '''
 
         code = embed_code(dict_)
         if code == CODE_BROADCAST:
@@ -69,15 +80,16 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
         code = embed_code(dict_)
         if code == CODE_USER_CHANGE:
             self.is_operator = dict_.get('user', None) == self.user
-        if code in [CODE_USER_CHANGE, CODE_BROADCAST_INFO]:
+        if code in [CODE_USER_CHANGE, CODE_BROADCAST_INFO, CODE_DISCONNECTED]:
             logger.debug('WebSocket: send {}'.format(dict_))
-            self.write_message(json.dumps(dict_))
+            self.write_message(dict_)
 
     @gen.coroutine
     def on_close(self):
         if self.is_operator:
-            self.pub_json({
+            yield self.pub_json({
                 'code': CODE_RELEASE,
                 'type': TYPE_ACTION,
                 'action': 'release'
             })
+        self.close_pubsub()

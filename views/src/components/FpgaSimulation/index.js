@@ -1,4 +1,5 @@
 import React from 'react';
+import { connect } from 'react-redux';
 
 import style from './style';
 
@@ -7,10 +8,17 @@ const seg_styles = [
   {fill: 'tomato', filter: 'url(#glow)'}
 ];
 
+@connect(
+  (state) => ({
+    led: state.device.led,
+    segs: state.device.segs
+  })
+)
 class FpgaSimulation extends React.Component {
 
   render() {
-    const { led, segs } = { led: 0x1234, segs: [1, 2, 4, 8, 16, 32, 64, 128] };
+    console.log(this.props)
+    const { led, segs } = this.props;
     return (
       <div className={style.media}>
         <img className={style.logo} alt="ZJU LOGO" src="/static/images/zju-logo.png"/>
@@ -51,7 +59,7 @@ class FpgaSimulation extends React.Component {
           {
             /* seven-seg display */
             Array(8).fill(0).map((e, i) => (
-              <g key={i} transform={`translate(${60 + 40 * i},300)`}>
+              <g key={i} transform={`translate(${60 + 40 * i},303), scale(1, 0.85)`}>
                 <rect x="0" y="0" width="30" height="60" fill="gray"/>
                 <polygon points="6,5 8.5,7 21.5,7 24,5 21.5,3 8.5,3" 
                          style={seg_styles[(segs[i] & Math.pow(2, 0)) >> 0]}/>
@@ -76,15 +84,15 @@ class FpgaSimulation extends React.Component {
               <g key={i}>
                 {
                   (led & Math.pow(2, i)) >> i ? [
-                    <rect key="1" x={62.5 + 20 * i} y="380" width="3" height="5" fill="lawngreen"/>,
-                    <rect key="2" x={62.5 + 20 * i - 2} y="378" width="7" height="9" fill="lawngreen" 
+                    <rect key="1" x={62.5 + 20 * i} y="378" width="3" height="5" fill="lawngreen"/>,
+                    <rect key="2" x={62.5 + 20 * i - 2} y="376" width="7" height="9" fill="lawngreen" 
                           filter="url(#glow)" fillOpacity="0.4" rx="2" ry="2"/>
                   ] : (
-                    <rect x={62.5 + 20 * i} y="380" width="3" height="5" style={{fill: 'white'}}/>
+                    <rect x={62.5 + 20 * i} y="378" width="3" height="5" style={{fill: 'white'}}/>
                   )
                 }
-                <rect x={60 + 20 * i} y="400" width="8" height="20" fill="gray"/>
-                <rect x={61.5 + 20 * i} y="405" width="5" height="10" fill="black"/>
+                <rect x={60 + 20 * i} y="398" width="8" height="20" fill="gray"/>
+                <rect x={61.5 + 20 * i} y="403" width="5" height="10" fill="black"/>
               </g>
             ))
           }

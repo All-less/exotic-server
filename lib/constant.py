@@ -20,6 +20,7 @@ CODE_USER_CHANGE = 3
 CODE_BROADCAST = 4
 CODE_AUTH = 5
 CODE_BROADCAST_INFO = 6
+CODE_DISCONNECTED = 7
 
 CODES = {
     'error': CODE_ERROR,
@@ -27,5 +28,6 @@ CODES = {
     'release': CODE_RELEASE,
     'user_changed': CODE_USER_CHANGE,
     'broadcast': CODE_BROADCAST,
-    'authorize': CODE_AUTH
+    'authorize': CODE_AUTH,
+    'fpga_disconnected': CODE_DISCONNECTED
 }

@@ -42,3 +42,8 @@ class JsonPubsub:
     @gen.coroutine
     def pub_json(self, dict_):
         yield self.pub.send_multipart([self.topic, json.dumps(dict_).encode('utf-8')])
+
+    def close_pubsub(self):
+        self.sub.close()
+        self.sub_stream.close()
+        self.pub.close()

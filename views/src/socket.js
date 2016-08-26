@@ -14,8 +14,10 @@ import {
   releaseButtonFail,
   fpgaAcquired,
   fpgaReleased,
-  displayError
+  displayError,
+  updateOutput
 } from './redux/device';
+import { push } from 'react-router-redux';
 import { addBullet } from './redux/barrage';
 
 const TYPE_ACTION = 0;
@@ -72,11 +74,18 @@ const reconnect_socket = () => {
         if (data.user === store.getState().account.user) {
           store.dispatch(fpgaAcquired());
         } else if (data.user === null) {
-          store.dispatch(fpgaReleased())
+          store.dispatch(fpgaReleased());
         }
+        break;
+      case 'fpga_disconnected':
+        store.dispatch(displayError('当前设备已断开连接'));
+        store.dispatch(push('/'));
         break;
       case 'broadcast':
         store.dispatch(addBullet(data.content));
+        break;
+      case 'output_status':
+        store.dispatch(updateOutput(data.segs, data.led));
         break;
       }
     }
@@ -87,7 +96,7 @@ const send = (obj) => {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(obj));
   } else {
-    console.error('Attempted to send data while socket is not opened.');
+    store.dispatch(displayError('无法连接服务器，请刷新页面'));
   }
 };
 
