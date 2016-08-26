@@ -6,8 +6,10 @@ from fabric.contrib.files import exists
 def stop_site():
     sudo('service nginx stop')
     sudo('supervisorctl stop exotic_server:*')
+    sudo('supervisorctl stop exotic_proxy:*')
 
 def start_site():
+    sudo('supervisorctl start exotic_proxy:*')
     sudo('supervisorctl start exotic_server:*')
     sudo('service nginx start')
 
@@ -20,17 +22,15 @@ def commit(message='', push='n'):
     if push == 'y':
         local("git push")
 
-def put_config_files():
-    put('config.py', '/var/www/exotic-server', use_sudo=True)
-
 def deploy():
     stop_site()
     with cd('/var/www/exotic-server'):
         run('git checkout .')
         run('git pull')
     with cd('/var/www/exotic-server/views'):
-        run('npm run build')
-    put_config_files()
+        run('/home/exotic/.nvm/versions/node/v6.2.0/bin/node '
+            '/home/exotic/.nvm/versions/node/v6.2.0/lib/node_modules/npm '
+            'run build')
     start_site()
 
 def backup_config():
