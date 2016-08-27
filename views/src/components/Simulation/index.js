@@ -1,6 +1,7 @@
 import React from 'react';
 
 import FpgaSimulation from '../FpgaSimulation';
+import VideoSimulation, { init as initVideo } from '../VideoSimulation';
 import Barrage from '../Barrage';
 import style from './style';
 
@@ -10,7 +11,10 @@ class Simulation extends React.Component {
     return (
       <div className={style.right}>
         <div className={style.border}>
-          <FpgaSimulation />
+          {/* 
+          <FpgaSimulation /> 
+          */}
+          <VideoSimulation onScriptLoaded={initVideo}/>
           <Barrage />
         </div>
       </div>

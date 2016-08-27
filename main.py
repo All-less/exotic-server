@@ -1,7 +1,5 @@
 #!env/bin/python
 # -*- coding: utf-8 -*- 
-import os
-
 import zmq
 from zmq.eventloop import ioloop
 ioloop.install()  # make sure it's called before all tornado stuff

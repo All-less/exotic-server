@@ -79,7 +79,7 @@ const reconnect_socket = () => {
         break;
       case 'fpga_disconnected':
         store.dispatch(displayError('当前设备已断开连接'));
-        store.dispatch(push('/'));
+        setTimeout(() => { store.dispatch(push('/')); }, 1000);
         break;
       case 'broadcast':
         store.dispatch(addBullet(data.content));

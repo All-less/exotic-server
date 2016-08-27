@@ -5,7 +5,8 @@
   width: 550px;
   height: 450px;
   overflow: hidden;
-
+  pointer-events: none;
+  
   .bullet {
     position: absolute;
     color: white;
