@@ -13,6 +13,26 @@
     margin-left: -1px; /* TODO: temp solution to CSS conflict */
     background-color: #fff;
   }
+
+  .switch_up {
+    margin-top: 0px;
+    animation: lift 0.3s linear;
+  }
+
+  .switch_down {
+    margin-top: 20px;
+    animation: lift 0.3s linear;
+    animation-direction: reverse;
+  }
+
+  @keyframes lift {
+    0% {
+      margin-top: 20px;
+    }
+    100% {
+      margin-top: 0px; 
+    }
+  }
 }
 
 

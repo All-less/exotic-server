@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 
 import { displayError } from '../../redux/device';
 import remote from '../../socket';
-
 import style from './style';
 
 @connect(
@@ -13,6 +12,12 @@ import style from './style';
   }
 )
 class Comment extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.handleClick = this.handleClick.bind(this);
+    this.handleKey = this.handleKey.bind(this);
+  }
 
   handleClick() {
     const content = this.refs.comment.value;
@@ -37,9 +42,9 @@ class Comment extends React.Component {
         <div className={style.discuss_contain}>
           <div className={style.text}>
             <input ref="comment" type="text" className={style.input_biu} 
-                   onKeyDown={this.handleKey.bind(this)}/>
+                   onKeyDown={this.handleKey}/>
           </div>
-          <div className={style.biu} onClick={this.handleClick.bind(this)}>发送</div>
+          <div className={style.biu} onClick={this.handleClick}>发送</div>
         </div>
       </div>
     );

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 import hashlib
 from random import choice
@@ -37,16 +38,3 @@ async def get_authed_list():
     res = await cursor.to_list(None)
     res = list(map(lambda x: x['device_id'], res))
     return res
-
-def embed_code(dict_):
-    code = dict_.get('code', None)
-    if code is not None:
-        return code
-    type_ = dict_.get('type', None)
-    if type_ in TYPES:
-        brief = dict_.get(TYPES[type_], None)
-    else:
-        brief = 'error'
-    code = CODES.get(brief, -1)
-    dict_['code'] = code
-    return code

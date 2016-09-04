@@ -1,31 +1,50 @@
 import store from './redux/store';
 import {
-  openSwitch,
-  openSwitchSucc,
-  openSwitchFail,
-  closeSwitch,
-  closeSwitchSucc,
-  closeSwitchFail,
-  pressButton,
-  pressButtonSucc,
-  pressButtonFail,
-  releaseButton,
-  releaseButtonSucc,
-  releaseButtonFail,
-  fpgaAcquired,
-  fpgaReleased,
+  fpgaStatus,
   displayError,
-  updateOutput
+  updateOutput,
+  updateInput,
+  toggleUpload,
+  toggleVideo,
+  setUploadStatus,
+  setButtonStatus,
+  setSwitchStatus
 } from './redux/device';
 import { push } from 'react-router-redux';
 import { addBullet } from './redux/barrage';
 
-const TYPE_ACTION = 0;
-const TYPE_STATUS = 1;
-const TPYE_OPERATION = 2;
-const TYPE_INFO = 3;
-const switchTimeout = Array(4).fill(undefined);
-const buttonTimeout = Array(4).fill(undefined);
+const types = [
+    'ACT_ACQUIRE', 
+    'ACT_RELEASE', 
+    'ACT_BROADCAST', 
+    'ACT_AUTH', 
+    'ACT_SYNC', 
+    'ACT_CHANGE_MODE',
+    'STAT_AUTH_SUCC', 
+    'STAT_AUTH_FAIL', 
+    'STAT_INPUT', 
+    'STAT_OUTPUT', 
+    'STAT_UPLOADED', 
+    'STAT_DOWNLOADED',
+    'STAT_PROGRAMMED', 
+    'OP_BTN_DOWN', 
+    'OP_BTN_UP', 
+    'OP_SW_OPEN', 
+    'OP_SW_CLOSE', 
+    'OP_PROG', 
+    'INFO_USER_CHANGED', 
+    'INFO_DISCONN', 
+    'INFO_BROADCAST',
+    'INFO_MODE_CHANGED'
+]
+
+types.forEach((val, index) => {
+  /* 
+   * note that this statement will be executed 
+   * in ES5 environment. 
+   */
+  eval(`window.${val} = ${index}`);
+});
 
 let socket = {};
 let device_id = null;
@@ -41,53 +60,78 @@ store.subscribe(() => {
 const reconnect_socket = () => {
   if (!device_id) return
   try {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.close();
+    }
     socket = new WebSocket(`ws://${location.host}/socket/${device_id}`);
   } catch (e) {
     store.dispatch(displayError('无法连接服务器，请重试'));
     return
   }
+  socket.onopen = (event) => {
+    remote.sync();
+  };
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
     switch (data.type) {
-    case TYPE_STATUS:
-      switch (data.status) {
-      case 'switch_on':
-        store.dispatch(openSwitchSucc(data.id));
-        clearTimeout(switchTimeout[data.id])
-        break;
-      case 'switch_off':
-        store.dispatch(closeSwitchSucc(data.id));
-        clearTimeout(switchTimeout[data.id]);
-        break;
-      case 'button_pressed':
-        store.dispatch(pressButtonSucc(data.id));
-        clearTimeout(buttonTimeout[data.id]);
-        break;
-      case 'button_released':
-        store.dispatch(releaseButtonSucc(data.id));
-        clearTimeout(buttonTimeout[data.id]);
-        break;
-      }
-    case TYPE_INFO:
-      switch (data.info) {
-      case 'user_changed':
-        if (data.user === store.getState().account.user) {
-          store.dispatch(fpgaAcquired());
+      case INFO_USER_CHANGED:
+        const state = store.getState();
+        const user = state.account.user;
+        const occupied = state.device.occupied;
+        const acquired = state.device.acquired;
+        if (data.user === user) {
+          if (!occupied && !acquired) {
+            /* user has acquired successfully */
+            store.dispatch(fpgaStatus(true, true));
+            store.dispatch(displayError('获取控制成功'));
+          }
         } else if (data.user === null) {
-          store.dispatch(fpgaReleased());
+          if (occupied && acquired) {
+            /* user has released successfully */
+            store.dispatch(fpgaStatus(false, false));
+            store.dispatch(displayError('释放控制成功'));
+          } else if (occupied && !acquired) {
+            /* other has released */
+            store.dispatch(fpgaStatus(false, false));
+            store.dispatch(displayError('设备当前空闲'));
+          }
+        } else { /* data.user is other user */
+          if (!occupied) {
+            store.dispatch(fpgaStatus(false, true));
+            store.dispatch(displayError('设备已被占用'));
+          }
         }
         break;
-      case 'fpga_disconnected':
+      case INFO_DISCONN:
         store.dispatch(displayError('当前设备已断开连接'));
         setTimeout(() => { store.dispatch(push('/')); }, 1000);
         break;
-      case 'broadcast':
+      case INFO_BROADCAST:
         store.dispatch(addBullet(data.content));
         break;
-      case 'output_status':
+      case STAT_OUTPUT:
         store.dispatch(updateOutput(data.segs, data.led));
         break;
-      }
+      case STAT_INPUT:
+        store.dispatch(setSwitchStatus(''));
+        store.dispatch(setButtonStatus(''));
+        store.dispatch(updateInput(data.buttons, data.switches));
+        break;
+      case STAT_DOWNLOADED:
+        store.dispatch(displayError('bit文件已上传成功'));
+        store.dispatch(setUploadStatus(''))
+        store.dispatch(toggleUpload(true));
+        break;
+      case STAT_PROGRAMMED:
+        store.dispatch(displayError('bit文件烧录成功'));
+        break;
+      case INFO_MODE_CHANGED:
+        if (data.mode === 'video') {
+          store.dispatch(toggleVideo(true));
+        } else if (data.mode === 'sim') {
+          store.dispatch(toggleVideo(false));
+        }
+        break;
     }
   };
 };
@@ -101,69 +145,72 @@ const send = (obj) => {
 };
 
 const remote = {
-  openSwitch: (id) => {
-    socket.send(JSON.stringify({type: 0, action: 'acquire'}));
+  sync: () => {
     send({
-      type: TPYE_OPERATION, 
-      operation: 2,
+      type: ACT_SYNC
+    });
+  },
+  openSwitch: (id) => {
+    store.dispatch(setSwitchStatus('数据发送中'));
+    send({
+      type: OP_SW_OPEN, 
       id
     });
-    store.dispatch(openSwitch(id));
-    switchTimeout[id] = setTimeout(
-      () => {store.dispatch(openSwitchFail(id))}, 30000
-    );
   },
   closeSwitch: (id) => {
+    store.dispatch(setSwitchStatus('数据发送中'));
     send({
-      type: TPYE_OPERATION,
-      operation: 3,
+      type: OP_SW_CLOSE,
       id
     });
-    store.dispatch(closeSwitch(id));
-    switchTimeout[id] = setTimeout(
-      () => {store.dispatch(closeSwitchFail(id))}, 30000
-    );
   },
   pressButton: (id) => {
+    store.dispatch(setButtonStatus('数据发送中'));
     send({
-      type: TPYE_OPERATION,
-      operation: 4,
+      type: OP_BTN_DOWN,
       id
     });
-    store.dispatch(pressButton(id));
-    buttonTimeout[id] = setTimeout(
-      () => {store.dispatch(pressButtonFail(id))}, 30000
-    );
   },
   releaseButton: (id) => {
+    store.dispatch(setButtonStatus('数据发送中'));
     send({
-      type: TPYE_OPERATION,
-      operation: 5,
+      type: OP_BTN_UP,
       id
     });
-    store.dispatch(releaseButton(id));
-    buttonTimeout[id] = setTimeout(
-      () => {store.dispatch(releaseButtonFail(id))}, 30000
-    );
   },
   broadcast: (content) => {
     send({
-      type: TYPE_ACTION,
-      action: 'broadcast',
+      type: ACT_BROADCAST,
       content
     });
   },
   acquire: () => {
     send({
-      type: TYPE_ACTION,
-      action: 'acquire'
+      type: ACT_ACQUIRE
     });
   },
   release: () => {
     send({
-      type: TYPE_ACTION,
-      action: 'release'
+      type: ACT_RELEASE
     });
+  },
+  fileUploaded: () => {
+    send({
+      type: STAT_UPLOADED
+    });
+  },
+  program: () => {
+    send({
+      type: OP_PROG
+    });
+  },
+  changeMode: (mode) => {
+    if (mode !== 'video' && mode !== 'digital')
+      return
+    send({
+      type: ACT_CHANGE_MODE,
+      mode
+    })
   }
 };
 

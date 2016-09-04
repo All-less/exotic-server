@@ -14,10 +14,9 @@ const seg_styles = [
     segs: state.device.segs
   })
 )
-class FpgaSimulation extends React.Component {
+class SvgSimulation extends React.Component {
 
   render() {
-    console.log(this.props)
     const { led, segs } = this.props;
     return (
       <div className={style.media}>
@@ -61,6 +60,7 @@ class FpgaSimulation extends React.Component {
             Array(8).fill(0).map((e, i) => (
               <g key={i} transform={`translate(${60 + 40 * i},303), scale(1, 0.85)`}>
                 <rect x="0" y="0" width="30" height="60" fill="gray"/>
+                {/* here we use "& Math.pow(2, ...)" to clear other bits */}
                 <polygon points="6,5 8.5,7 21.5,7 24,5 21.5,3 8.5,3" 
                          style={seg_styles[(segs[i] & Math.pow(2, 0)) >> 0]}/>
                 <polygon points="25,6 23,8.5 23,26.5 25,29 27,26.5 27,8.5" 
@@ -117,4 +117,4 @@ class FpgaSimulation extends React.Component {
   }
 }
 
-export default FpgaSimulation;
+export default SvgSimulation;

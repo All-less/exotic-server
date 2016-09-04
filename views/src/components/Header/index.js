@@ -1,15 +1,16 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem } from 'react-bootstrap';
+
 import { toggleSetting } from '../../redux/device';
 import { logout } from '../../redux/account';
-
 import style from './style';
 import remote from '../../socket';
 
 @connect(
   (state) => ({
-    occupied: state.device.occupied
+    occupied: state.device.occupied,
+    acquired: state.device.acquired
   }),
   {
     toggleSetting, logout
@@ -25,8 +26,10 @@ class Header extends React.Component {
         <ul className={style.nav}>
           <li><a onClick={this.props.toggleSetting}>设置</a></li>
           <li>
-            <a onClick={this.props.occupied ? remote.release : remote.acquire}>
-             { this.props.occupied ? '释放控制' : '获取控制' }
+            <a onClick={this.props.acquired ? remote.release :
+                        this.props.occupied ? null : remote.acquire}>
+             { this.props.acquired ? '释放控制' : 
+               this.props.occupied ? '已被占用' :'获取控制' }
             </a>
           </li>
           <li><a onClick={this.props.logout}>注销登录</a></li>

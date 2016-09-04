@@ -12,6 +12,11 @@ logger = logging.getLogger('server.' + __name__)
 
 class JsonPubsub:
 
+    topic = None
+    sub = None  # subscribe socket
+    pub = None  # publish socket
+    sub_stream = None 
+
     @gen.coroutine
     def init_pubsub(self, recv_port, send_port, topic):
         ctx = ZMQContext.instance()
@@ -32,8 +37,8 @@ class JsonPubsub:
             dict_ = json.loads(msg[1].decode('utf-8'))
             yield self.on_recv_json(dict_)
         except Exception as e:
-            logger.error('Error occurs during decoding data from device.\n\
-                          {}'.format(e), exc_info=True)
+            logger.error('Error occurs during decoding data from device "{}".'
+                         '{}'.format(self.topic, e), exc_info=True)
 
     @gen.coroutine
     def on_recv_json(self, dict_):
@@ -41,9 +46,12 @@ class JsonPubsub:
 
     @gen.coroutine
     def pub_json(self, dict_):
-        yield self.pub.send_multipart([self.topic, json.dumps(dict_).encode('utf-8')])
+        yield self.pub.send_multipart(
+            [self.topic, json.dumps(dict_).encode('utf-8')]
+        )
 
     def close_pubsub(self):
-        self.sub.close()
-        self.sub_stream.close()
-        self.pub.close()
+        if self.sub and self.pub:  # check initialization
+            self.sub.close()
+            self.sub_stream.close()
+            self.pub.close()

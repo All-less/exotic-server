@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*- 
+from tornado.options import options
+
 from handlers.home import HomeHandler
 from handlers.file import UploadHandler
 from handlers.file import DownloadHandler
@@ -17,7 +19,7 @@ url_patterns = [
     (r'/api/logout', LogoutHandler),
     (r'/api/register', RegisterHandler),
     (r'/api/upload', UploadHandler),
-    (r'/api/download', DownloadHandler),
+    (r'/api/download/(.+)', DownloadHandler, {'path': options.tmp_dir}),
     (r'/api/verify', EmailHandler),
     (r'/api/find', FindPasswordHandler),
     (r'/api/change', ChangePasswordHandler),

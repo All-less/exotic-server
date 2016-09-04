@@ -11,8 +11,14 @@ logger = logging.getLogger('server.' + __name__)
 
 
 class DownloadHandler(StaticFileHandler):
-    # TODO: implement DownloadHandler
-    pass
+    
+    @classmethod
+    def get_absolute_path(cls, root, path):
+        return str(Path(options.tmp_dir) / path)
+
+    def set_extra_headers(self, path):
+        self.set_header('Content-Disposition', 'attachment;')
+        self.set_header('Content-Type', 'application/force-download')
 
 
 class UploadHandler(BaseHandler):

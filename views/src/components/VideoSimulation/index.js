@@ -4,7 +4,9 @@ import scriptLoader from 'react-async-script-loader'
 import style from './style';
 
 export const init = () => {
-  jwplayer('mediaspace').setup({
+  const player = jwplayer('mediaspace');
+
+  player.setup({
     sources: [
       {file: `rtmp://${location.hostname}/rtmp/live`},
       {file: `http://${location.hostname}/hls/live.m3u8`}
@@ -22,6 +24,10 @@ export const init = () => {
   '/static/vendor/jwplayer.js'
 )
 class VideoSimulation extends React.Component {
+
+  componentWillUnmount() {
+    jwplayer('mediaspace').remove()
+  }
 
   render() {
     return (

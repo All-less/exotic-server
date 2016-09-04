@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from fabric.api import sudo, run, cd, local, put, get
+from pathlib import Path
+
+from fabric.api import sudo, run, cd, local, put, get, warn
 from fabric.contrib.files import exists
 
 
@@ -34,5 +36,9 @@ def deploy():
     start_site()
 
 def backup_config():
-    get('/etc/nginx/nginx.conf', '/tmp/exotic-server', use_sudo=True)
-    get('/etc/supervisor/conf.d/exotic.conf', '/tmp/exotic-server', use_sudo=True)
+    tmp_dir = Path('/tmp/exotic-server/')
+    if not tmp_dir.exists():
+        tmp_dir.mkdir(parents=True)
+        warn('Create path /tmp/exotic-server/')
+    get('/etc/nginx/nginx.conf', '/tmp/exotic-server/nginx.conf', use_sudo=True)
+    get('/etc/supervisor/conf.d/exotic.conf', '/tmp/exotic-server/exotic.conf', use_sudo=True)

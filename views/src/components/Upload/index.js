@@ -1,14 +1,16 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { setUploadStatus } from '../../redux/device';
 
+import { setUploadStatus, displayError } from '../../redux/device';
+import remote from '../../socket';
 import style from './style';
 
 @connect(
   (state) => ({
-    occupied: state.device.occupied,
+    acquired: state.device.acquired,
     status: state.device.uploadStatus,
-    device_id: state.device.device_id
+    device_id: state.device.device_id,
+    uploaded: state.device.uploaded
   }),
   {
     setUploadStatus
@@ -30,23 +32,30 @@ class Upload extends React.Component {
     const formData = new FormData();
     formData.append('file', this.refs.inputFile.files[0]);
     formData.append('filetype', 'bit');
-    formData.append('device_id', location.pathname.split('/').pop());
+    formData.append('device_id', this.props.device_id);
 
     const req = new XMLHttpRequest();
     req.addEventListener("abort", this.props.setUploadStatus.bind(null, '上传失败'));
     req.addEventListener("error", this.props.setUploadStatus.bind(null, '上传失败'));
-    req.addEventListener("loadend", this.props.setUploadStatus.bind(null, '上传成功'));
+    req.addEventListener("loadend", () => {
+      this.props.setUploadStatus('正在传输');
+      remote.fileUploaded();
+    });
     req.addEventListener("loadstart", this.props.setUploadStatus.bind(null, '正在上传'));
     req.open('post', '/api/upload');
     req.send(formData);
   };
 
   handleProgram = () => {
-    // TODO
+    if (!this.props.uploaded) {
+      this.props.displayError('您尚未上传bit文件或正在上传中。');
+    } else {
+      remote.program();
+    }
   }
 
   render() {
-    const color = this.props.occupied ? '#fff' : '#777';
+    const color = this.props.acquired ? '#fff' : '#777';
     return (
       <div>
         <p style={{color: color}}>Bit 文件 <span id="status">{this.props.status}</span></p>

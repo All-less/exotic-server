@@ -13,7 +13,6 @@ from lib.constant import *
 from lib.json_stream import JsonStream
 from lib.json_pubsub import JsonPubsub
 from lib.proxy_pool import ProxyPool
-from lib.util import embed_code
 from models import Rpi
 from .pool import DevicePool
 from settings import settings
@@ -27,36 +26,51 @@ class Device(JsonStream, JsonPubsub):
     device_id = None
     operator = None
 
+    buttons = 0x0
+    switches = 0x0
+    led = 0xFFFF
+    segs = [0x7F for _ in range(8)]
+    mode = 'digital'
+
     def __init__(self, stream, address):
         stream.set_close_callback(self.on_close)
         super().__init__(stream, address)
         self.id_ = uuid.uuid4()
 
     async def on_read_json(self, dict_):
-        code = embed_code(dict_)
-        if not self.device_id and code == CODE_AUTH:
+        code = dict_.get('type', None)
+        if not self.device_id and code == ACT_AUTH:
             await self.try_auth(dict_)
         else:
-            pass  # TODO: broadcast dict_ to others
+            if code == STAT_INPUT:
+                self.buttons = dict_['buttons']
+                self.switches = dict_['switches']
+            elif code == INFO_MODE_CHANGED:
+                self.mode = dict_['mode']
+
+            if code in [STAT_INPUT, STAT_DOWNLOADED, STAT_PROGRAMMED,
+                        INFO_MODE_CHANGED]:
+                await self.pub_json(dict_)
 
     async def try_auth(self, dict_):
         device_id = dict_.get('device_id', None)
         auth_key = dict_.get('auth_key', None)
         rpi = await Rpi.find_one({'device_id': device_id})
-
         if not rpi or rpi['auth_key'] != auth_key:
             self.send_json({
-                'type': TYPE_STATUS, 
-                'status': 'auth_failed'
+                'type': STAT_AUTH_FAIL
             })
             return
 
         self.device_id = device_id
         DevicePool.remove_unauth_device(self)
-        # TODO: add more fields
         self.send_json({
-            'type': TYPE_STATUS, 
-            'status': 'authorized'
+            'type': STAT_AUTH_SUCC,
+            'rtmp_host': options.rtmp_host,
+            'rtmp_port': options.rtmp_port,
+            'rtmp_app': 'live',
+            'rtmp_stream': self.device_id,
+            'file_url': '{}/{}.bit'.format(options.file_url, self.device_id)
         })
 
         send_port, recv_port = ProxyPool.get_ports()
@@ -69,35 +83,59 @@ class Device(JsonStream, JsonPubsub):
 
     @gen.coroutine
     def on_recv_json(self, dict_):
-        logger.debug('Pubsub: get {}'.format(dict_))
+        logger.debug('Pubsub: {} get {}'.format(self.device_id, dict_))
         pubsub_handlers = {
-            CODE_ACQUIRE: self.handle_acquire,
-            CODE_RELEASE: self.handle_release
+            ACT_ACQUIRE: self.handle_acquire,
+            ACT_RELEASE: self.handle_release
         }
-        code = dict_.get('code', -1)
+        code = dict_.get('type', None)
+        if code == ACT_SYNC:
+            yield self.pub_json({
+                'type': INFO_USER_CHANGED, 
+                'user': self.operator
+            })
+            yield self.pub_json({
+                'type': STAT_OUTPUT, 
+                'led': self.led, 
+                'segs': self.segs
+            })
+            yield self.pub_json({
+                'type': STAT_INPUT, 
+                'switches': self.switches, 
+                'buttons': self.buttons
+            })
+            yield self.pub_json({
+                'type': INFO_MODE_CHANGED,
+                'mode': self.mode
+            })
+            return
+        if code in [OP_BTN_DOWN, OP_BTN_UP, OP_SW_OPEN, OP_SW_CLOSE,
+                    STAT_UPLOADED, OP_PROG, ACT_CHANGE_MODE]:
+            self.send_json(dict_)
+            return
         res = {}
         if code in pubsub_handlers:
             res = pubsub_handlers[code](dict_)
         if res:  # if there is some response
-            logger.debug('Pubsub: send {}'.format(res))
+            logger.debug('Pubsub: {} send {}'.format(self.device_id, res))
             yield self.pub_json(res)
 
     def handle_acquire(self, dict_):
         if not self.operator:
             user = dict_.get('user', None)
             self.operator = user
-            return {'type': TYPE_INFO, 'info': 'user_changed', 'user': user}
+            return {'type': INFO_USER_CHANGED, 'user': user}
 
     def handle_release(self, dict_):
         if self.operator:
             self.operator = None
-            return {'type': TYPE_INFO, 'info': 'user_changed', 'user': None}
+            return {'type': INFO_USER_CHANGED, 'user': None}
 
     async def on_close(self):
         if not self.device_id:  # device has not been auth'ed yet
             DevicePool.remove_unauth_device(self)
         else:
-            await self.pub_json({'type': TYPE_INFO, 'info': 'fpga_disconnected'})
+            await self.pub_json({'type': INFO_DISCONN})
             logger.info('Device "{}" disconnected.'.format(self.device_id))
             await Rpi.update({'device_id': self.device_id}, 
                              {'$set': {'send_port': 0,

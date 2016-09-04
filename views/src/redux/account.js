@@ -1,7 +1,7 @@
 import store from './store';
 import { push } from 'react-router-redux';
 
-import { updateDevices, updateSocket } from './device';
+import { updateDevices, gotoDevice } from './device';
 
 const CHANGE_FORM = 'Exotic/account/CHANGE_FORM';
 const VERIFY_EMAIL = 'Exotic/account/VERIFY_EMAIL';
@@ -238,7 +238,7 @@ export default (state=init, action) => {
           const len = action.result.status.devices.length;
           const index = Math.floor(Math.random() * len);
           const device_id = action.result.status.devices[index];
-          store.dispatch(push(`device/${device_id}`));
+          store.dispatch(gotoDevice(device_id));
         }, 0);
       } else {
         if (action.result.status.devices.length === 0 &&
