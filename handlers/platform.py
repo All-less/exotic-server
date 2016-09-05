@@ -28,7 +28,7 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
     @gen.coroutine
     def open(self, device_id):
         user = self.get_secure_cookie('user')
-        if not user:  # user should be logged in
+        if not isinstance(user, bytes):  # user should be logged in
             self.close()
         self.device_id = device_id
         self.user = user.decode('utf-8')
@@ -48,14 +48,6 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
         except Exception as e:
             logger.error('Error occurs during decoding data from WebSocket.\n'
                          '{}'.format(e), exc_info=True)
-
-        '''
-        yield self.write_message({
-            'type': STAT_OUTPUT,
-            'led': math.floor(random.random() * 0xFFFF),
-            'segs': [ math.floor(random.random() * 0x7F) for _ in range(8) ]
-        })
-        '''
 
         code = dict_.get('type', None)
         if code == ACT_BROADCAST:
@@ -82,6 +74,7 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
 
     @gen.coroutine
     def on_close(self):
+        logger.info('WebSocket from user "{}" closed.'.format(self.user))
         if self.is_operator:
             yield self.pub_json({'type': ACT_RELEASE})
         self.close_pubsub()

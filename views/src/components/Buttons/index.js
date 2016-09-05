@@ -9,7 +9,7 @@ import style from './style';
   (state) => ({
     acquired: state.device.acquired,
     buttons: state.device.buttons,
-    status: state.device.buttons.buttonStatus
+    status: state.device.buttonStatus
   })
 )
 class Buttons extends React.Component {

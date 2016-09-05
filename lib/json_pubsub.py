@@ -46,12 +46,13 @@ class JsonPubsub:
 
     @gen.coroutine
     def pub_json(self, dict_):
+        if not self.pub or self.pub.closed:
+            return
         yield self.pub.send_multipart(
             [self.topic, json.dumps(dict_).encode('utf-8')]
         )
 
     def close_pubsub(self):
         if self.sub and self.pub:  # check initialization
-            self.sub.close()
-            self.sub_stream.close()
-            self.pub.close()
+            self.sub_stream.close(1)
+            self.pub.close(1)
