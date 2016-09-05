@@ -96,6 +96,7 @@ input:focus{
         line-height: 20px;
         color: #fff;
         overflow: hidden;
+        vertical-align: top;
       }
       #file_input{
         width:48px;

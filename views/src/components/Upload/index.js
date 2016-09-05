@@ -13,7 +13,7 @@ import style from './style';
     uploaded: state.device.uploaded
   }),
   {
-    setUploadStatus
+    setUploadStatus, displayError
   }
 )
 class Upload extends React.Component {
@@ -27,7 +27,10 @@ class Upload extends React.Component {
   };
 
   handleUpload = () => {
-    if (!this.state.file) return;
+    if (!this.state.file) {
+      this.props.displayError('请选择文件');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', this.refs.inputFile.files[0]);
