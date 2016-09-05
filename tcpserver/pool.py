@@ -17,7 +17,7 @@ class DevicePool:
         """Add an unauthenticated device to to-auth list."""
         if len(cls.devices_to_auth) > 20:
             _, first = cls.devices_to_auth.popitem()
-            first.send_json({'type': TYPE_INFO, 'info': 'AUTH_TIMEOUT'})
+            first.send_json({'type': STAT_AUTH_FAIL})
             first.close()
         cls.devices_to_auth[device.id_] = device
 

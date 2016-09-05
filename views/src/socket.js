@@ -128,7 +128,7 @@ const reconnect_socket = () => {
       case INFO_MODE_CHANGED:
         if (data.mode === 'video') {
           store.dispatch(toggleVideo(true));
-        } else if (data.mode === 'sim') {
+        } else if (data.mode === 'digital') {
           store.dispatch(toggleVideo(false));
         }
         break;
