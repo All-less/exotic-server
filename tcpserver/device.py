@@ -47,9 +47,12 @@ class Device(JsonStream, JsonPubsub):
                 self.switches = dict_['switches']
             elif code == INFO_MODE_CHANGED:
                 self.mode = dict_['mode']
+            elif code == STAT_OUTPUT:
+                self.led = dict_['led']
+                self.segs = dict_['segs']
 
             if code in [STAT_INPUT, STAT_DOWNLOADED, STAT_PROGRAMMED,
-                        INFO_MODE_CHANGED]:
+                        INFO_MODE_CHANGED, STAT_OUTPUT]:
                 await self.pub_json(dict_)
 
     async def try_auth(self, dict_):
@@ -124,12 +127,16 @@ class Device(JsonStream, JsonPubsub):
         if not self.operator:
             user = dict_.get('user', None)
             self.operator = user
-            return {'type': INFO_USER_CHANGED, 'user': user}
+            res = {'type': INFO_USER_CHANGED, 'user': user}
+            self.send_json(res)
+            return res
 
     def handle_release(self, dict_):
         if self.operator:
             self.operator = None
-            return {'type': INFO_USER_CHANGED, 'user': None}
+            res = {'type': INFO_USER_CHANGED, 'user': None}
+            self.send_json(res)
+            return res
 
     async def on_close(self):
         if not self.device_id:  # device has not been auth'ed yet
