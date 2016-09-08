@@ -32,6 +32,12 @@ class Device(JsonStream, JsonPubsub):
     segs = [0x7F for _ in range(8)]
     mode = 'digital'
 
+    live_host = None
+    rtmp_port = None
+    rtmp_app = None
+    hls_path = None
+    stream_key = None
+
     def __init__(self, stream, address):
         stream.set_close_callback(self.on_close)
         super().__init__(stream, address)
@@ -69,19 +75,24 @@ class Device(JsonStream, JsonPubsub):
         DevicePool.remove_unauth_device(self)
         self.send_json({
             'type': STAT_AUTH_SUCC,
-            'rtmp_host': options.rtmp_host,
-            'rtmp_port': options.rtmp_port,
-            'rtmp_app': 'live',
+            'rtmp_host': rpi['live_host'],
+            'rtmp_port': rpi['rtmp_port'],
+            'rtmp_app': rpi['rtmp_app'],
             'rtmp_stream': self.device_id,
             'file_url': '{}/{}.bit'.format(options.file_url, self.device_id)
         })
+        self.live_host = rpi['live_host']
+        self.rtmp_port = rpi['rtmp_port']
+        self.rtmp_app = rpi['rtmp_app']
+        self.hls_path = rpi['hls_path']
+        self.stream_key = self.device_id
 
         send_port, recv_port = ProxyPool.get_ports()
         await self.init_pubsub(recv_port, send_port, self.device_id.encode('utf-8'))
-        await Rpi.update({'_id': rpi['_id']}, 
+        await Rpi.update({'_id': rpi['_id']},
                          {'$set': {'send_port': send_port,
                                    'recv_port': recv_port}})
-        
+
         logger.info('Device "{}" authenticated.'.format(device_id))
 
     @gen.coroutine
@@ -94,22 +105,30 @@ class Device(JsonStream, JsonPubsub):
         code = dict_.get('type', None)
         if code == ACT_SYNC:
             yield self.pub_json({
-                'type': INFO_USER_CHANGED, 
+                'type': INFO_USER_CHANGED,
                 'user': self.operator
             })
             yield self.pub_json({
-                'type': STAT_OUTPUT, 
-                'led': self.led, 
+                'type': STAT_OUTPUT,
+                'led': self.led,
                 'segs': self.segs
             })
             yield self.pub_json({
-                'type': STAT_INPUT, 
-                'switches': self.switches, 
+                'type': STAT_INPUT,
+                'switches': self.switches,
                 'buttons': self.buttons
             })
             yield self.pub_json({
                 'type': INFO_MODE_CHANGED,
                 'mode': self.mode
+            })
+            yield self.pub_json({
+                'type': INFO_VIDEO_URL,
+                'live_host': self.live_host,
+                'rtmp_port': self.rtmp_port,
+                'rtmp_app': self.rtmp_app,
+                'stream_key': self.stream_key,
+                'hls_path': self.hls_path
             })
             return
         if code in [OP_BTN_DOWN, OP_BTN_UP, OP_SW_OPEN, OP_SW_CLOSE,
@@ -144,6 +163,6 @@ class Device(JsonStream, JsonPubsub):
         else:
             await self.pub_json({'type': INFO_DISCONN})
             logger.info('Device "{}" disconnected.'.format(self.device_id))
-            await Rpi.update({'device_id': self.device_id}, 
+            await Rpi.update({'device_id': self.device_id},
                              {'$set': {'send_port': 0,
                                        'recv_port': 0}})

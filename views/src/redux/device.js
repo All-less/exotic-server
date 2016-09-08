@@ -16,6 +16,7 @@ const UPDATE_OUTPUT = 'Exotic/device/UPDATE_OUTPUT';
 const UPDATE_INPUT = 'Exotic/device/UPDATE_INPUT';
 const TOGGLE_VIDEO = 'Exotic/device/TOGGLE_VIDEO';
 const TOGGLE_UPLOAD = 'Exotic/device/TOGGLE_UPLOAD';
+const UPDATE_VIDEO_URL = 'Exotic/device/UPDATE_VIDEO_URL';
 
 const init = {
   setting: false,
@@ -98,6 +99,11 @@ export const updateInput = (buttons, switches) => ({
 export const toggleVideo = (toggle) => ({
   type: TOGGLE_VIDEO,
   toggle
+});
+
+export const updateVideoUrl = (data) => ({
+  type: UPDATE_VIDEO_URL,
+  ...data
 });
 
 export default (state=init, action) => {
@@ -186,6 +192,15 @@ export default (state=init, action) => {
     return {
       ...state,
       uploaded: action.uploaded
+    };
+  case UPDATE_VIDEO_URL:
+    return {
+      ...state,
+      live_host: action.live_host,
+      rtmp_port: action.rtmp_port,
+      rtmp_app: action.rtmp_app,
+      hls_path: action.hls_path,
+      stream_key: action.stream_key
     };
   default:
     return state;

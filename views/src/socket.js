@@ -8,7 +8,8 @@ import {
   toggleVideo,
   setUploadStatus,
   setButtonStatus,
-  setSwitchStatus
+  setSwitchStatus,
+  updateVideoUrl
 } from './redux/device';
 import { push } from 'react-router-redux';
 import { addBullet } from './redux/barrage';
@@ -35,7 +36,8 @@ const types = [
     'INFO_USER_CHANGED', 
     'INFO_DISCONN', 
     'INFO_BROADCAST',
-    'INFO_MODE_CHANGED'
+    'INFO_MODE_CHANGED',
+    'INFO_VIDEO_URL'
 ]
 
 types.forEach((val, index) => {
@@ -131,6 +133,10 @@ const reconnect_socket = () => {
         } else if (data.mode === 'digital') {
           store.dispatch(toggleVideo(false));
         }
+        break;
+      case INFO_VIDEO_URL:
+        delete data.type;
+        store.dispatch(updateVideoUrl(data));
         break;
     }
   };

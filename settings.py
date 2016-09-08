@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 import logging
 import tornado
 import tornado.template
@@ -25,8 +25,6 @@ define('smtp_host', default=None, help='host address of SMTP server', type=str)
 define('smtp_port', default=None, help='port address of SMTP server', type=int)
 define('salt_pos', default=None, help='position to mix salt and password', type=int)
 define('tmp_dir', default='/tmp/exotic-server', help='location for temporary files', type=str)
-define('rtmp_host', help='host address for rtmp streaming', type=str)
-define('rtmp_port', help='host port for rtmp streaming', type=int)
 define('file_url', help='url for downloading file', type=str)
 tornado.options.parse_command_line()
 
@@ -66,7 +64,7 @@ USE_SYSLOG = DEPLOYMENT == DeploymentType.PRODUCTION
 # unless propagate: True is set.
 LOGGERS = {
    'loggers': {
-        'tornado.application': {}, # 
+        'tornado.application': {}, #
         'tornado.access': {},      # enable default logging
         'tornado.general': {},     #
         'server': {
