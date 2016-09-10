@@ -43,15 +43,19 @@ export const init = () => {
 class VideoSimulation extends React.Component {
 
   componentWillUnmount() {
-    jwplayer('mediaspace').remove()
+    if (jwplayer !== undefined)
+      jwplayer('mediaspace').remove()
   }
 
   render() {
     const { live_host, hls_path, stream_key } = this.props;
     return (
       <div className={style.media} id="mediaspace">
-        <video src={`http://${live_host}/${hls_path}/${stream_key}.m3u8`}
-               width="550" height="450" autoPlay controls></video>
+        {
+          live_host && hls_path && stream_key &&
+            <video src={`http://${live_host}/${hls_path}/${stream_key}.m3u8`}
+                   width="550" height="450" autoPlay controls></video>
+        }
       </div>
     );
   }
