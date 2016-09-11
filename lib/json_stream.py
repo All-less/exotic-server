@@ -33,5 +33,5 @@ class JsonStream:
         pass
 
     def send_json(self, dict_):
-        if not self._stream.closed()
+        if not self._stream.closed():
             self._stream.write(utf8(json_encode(dict_) + DELIMITER))
