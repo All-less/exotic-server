@@ -5,15 +5,19 @@ from fabric.api import sudo, run, cd, local, put, get, warn
 from fabric.contrib.files import exists
 
 
-def stop_site():
+def stop():
     sudo('service nginx stop')
     sudo('supervisorctl stop exotic_server:*')
     sudo('supervisorctl stop exotic_proxy:*')
 
-def start_site():
+def start():
     sudo('supervisorctl start exotic_proxy:*')
     sudo('supervisorctl start exotic_server:*')
     sudo('service nginx start')
+
+def restart():
+    stop()
+    start()
 
 def commit(message='', push='n'):
     """
@@ -25,7 +29,7 @@ def commit(message='', push='n'):
         local("git push")
 
 def deploy():
-    stop_site()
+    stop()
     with cd('/var/www/exotic-server'):
         run('git checkout .')
         run('git pull')
@@ -33,7 +37,7 @@ def deploy():
         run('/home/exotic/.nvm/versions/node/v6.2.0/bin/node '
             '/home/exotic/.nvm/versions/node/v6.2.0/lib/node_modules/npm '
             'run build')
-    start_site()
+    start()
 
 def backup_config():
     tmp_dir = Path('/tmp/exotic-server/')

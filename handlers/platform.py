@@ -68,7 +68,8 @@ class PlatformHandler(tornado.websocket.WebSocketHandler, JsonPubsub):
             self.is_operator = dict_.get('user', None) == self.user
         if code in [INFO_USER_CHANGED, INFO_BROADCAST, INFO_DISCONN,
                     STAT_OUTPUT, STAT_INPUT, STAT_DOWNLOADED,
-                    STAT_PROGRAMMED, INFO_MODE_CHANGED, INFO_VIDEO_URL]:
+                    STAT_PROGRAMMED, INFO_MODE_CHANGED, INFO_VIDEO_URL,
+                    STAT_DOWNLOAD_FAIL]:
             logger.debug('WebSocket: {} send {}'.format(self.device_id, dict_))
             self.write_message(dict_)
 

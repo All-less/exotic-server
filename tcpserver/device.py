@@ -58,7 +58,7 @@ class Device(JsonStream, JsonPubsub):
                 self.segs = dict_['segs']
 
             if code in [STAT_INPUT, STAT_DOWNLOADED, STAT_PROGRAMMED,
-                        INFO_MODE_CHANGED, STAT_OUTPUT]:
+                        INFO_MODE_CHANGED, STAT_OUTPUT, STAT_DOWNLOAD_FAIL]:
                 await self.pub_json(dict_)
 
     async def try_auth(self, dict_):

@@ -74,6 +74,13 @@ class FindPasswordForm extends React.Component {
     this.setState({ fields });
   }
 
+  handleKey(event) {
+    if (event.keyCode === 13) {
+      this.handleFindClick();
+      return
+    }
+  }
+
   render() {
     const { email, vcode } = this.state.fields;
     return (
@@ -84,7 +91,9 @@ class FindPasswordForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-envelope-o fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="text" placeholder="请输入邮箱地址"
-                           onChange={this.handleChange.bind(this, 'email')} onBlur={this.handleBlur.bind(this, 'email')}/>
+                           onChange={this.handleChange.bind(this, 'email')}
+                           onBlur={this.handleBlur.bind(this, 'email')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(email.touched && email.error) || '　'}</HelpBlock>
           </FormGroup>,
@@ -92,10 +101,12 @@ class FindPasswordForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-key fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="text" placeholder="请输入验证码"
-                           onChange={this.handleChange.bind(this, 'vcode')} onBlur={this.handleBlur.bind(this, 'vcode')}/> 
+                           onChange={this.handleChange.bind(this, 'vcode')}
+                           onBlur={this.handleBlur.bind(this, 'vcode')}
+                           onKeyDown={this.handleKey.bind(this)}/>
               <InputGroup.Button>
                 <Button onClick={this.handleVcodeClick.bind(this)} disabled={this.props.vcode_sent || !!email.error}>
-                  {this.props.vcode_sent ?  this.props.vcode_count + '秒后重新获取' : '获取验证码'} 
+                  {this.props.vcode_sent ?  this.props.vcode_count + '秒后重新获取' : '获取验证码'}
                   {this.props.vcode_sending && <i className="fa fa-spinner fa-pulse fa-fw" />}
                 </Button>
               </InputGroup.Button>

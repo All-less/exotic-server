@@ -16,6 +16,7 @@ types = [
     'STAT_UPLOADED',
     'STAT_DOWNLOADED',
     'STAT_PROGRAMMED',
+    'STAT_DOWNLOAD_FAIL',
     'OP_BTN_DOWN',
     'OP_BTN_UP',
     'OP_SW_OPEN',

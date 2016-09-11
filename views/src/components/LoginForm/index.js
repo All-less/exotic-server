@@ -45,12 +45,13 @@ class LoginForm extends React.Component {
                !is.email(val) ? '邮箱地址不合法。' :
                                 '';
       case 'password':
-        return !val ? '此项为必填项。' : 
+        return !val ? '此项为必填项。' :
                       '';
     }
   }
 
   handleChange(key, event) {
+
     let fields = this.state.fields;
     let val = event.target.value;
     fields[key].value = val;
@@ -64,6 +65,13 @@ class LoginForm extends React.Component {
     this.setState({ fields });
   }
 
+  handleKey(event) {
+    if (event.keyCode === 13) {
+      this.handleLoginClick();
+      return
+    }
+  }
+
   render() {
     const { email, password } = this.state.fields;
     return (
@@ -74,7 +82,9 @@ class LoginForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-envelope-o fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="text" placeholder="请输入邮箱地址"
-                           onChange={this.handleChange.bind(this, 'email')} onBlur={this.handleBlur.bind(this, 'email')}/>
+                           onChange={this.handleChange.bind(this, 'email')}
+                           onBlur={this.handleBlur.bind(this, 'email')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(email.touched && email.error) || '　'}</HelpBlock>
           </FormGroup>,
@@ -82,7 +92,9 @@ class LoginForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-lock fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="password" placeholder="请输入登录密码"
-                           onChange={this.handleChange.bind(this, 'password')} onBlur={this.handleBlur.bind(this, 'password')}/> 
+                           onChange={this.handleChange.bind(this, 'password')}
+                           onBlur={this.handleBlur.bind(this, 'password')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(password.touched && password.error) || '　'}</HelpBlock>
           </FormGroup>,
@@ -95,7 +107,7 @@ class LoginForm extends React.Component {
               <MenuItem divider />
               <MenuItem eventKey="find">找回密码</MenuItem>
               <MenuItem eventKey="reset">修改密码</MenuItem>
-            </SplitButton>  
+            </SplitButton>
           </div>
         ]}
         </QueueAnim>

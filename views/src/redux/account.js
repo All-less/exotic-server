@@ -83,7 +83,7 @@ export default (state=init, action) => {
     case CHANGE_FORM:
       return {
         ...state,
-        formState: action.formState, 
+        formState: action.formState,
         vcode_msg: null,
         reg_msg: null,
         change_msg: null,
@@ -158,7 +158,7 @@ export default (state=init, action) => {
       };
     case LOGIN:
       return {
-        ...state, 
+        ...state,
         loggingIn: true,
         login_msg: null
       };
@@ -184,8 +184,8 @@ export default (state=init, action) => {
       return {
         ...state,
         loggingIn: false,
-        login_msg: action.error.err === 'NO_USER'        ? '该邮箱未注册。' :
-                   action.error.err === 'WRONG_PASSWORD' ? '登录密码错误。' :
+        login_msg: action.error.err === 'NO_USER'        ? '邮箱或登录密码错误。' :
+                   action.error.err === 'WRONG_PASSWORD' ? '邮箱或登录密码错误。' :
                                                            '出现未知错误。'
       }
     case CHANGE:
@@ -204,8 +204,8 @@ export default (state=init, action) => {
       return {
         ...state,
         changing: false,
-        change_msg: action.error.err === 'NO_USER'        ? '该邮箱未注册。' :
-                    action.error.err === 'WRONG_PASSWORD' ? '登录密码错误。' :
+        change_msg: action.error.err === 'NO_USER'        ? '邮箱或登录密码错误。' :
+                    action.error.err === 'WRONG_PASSWORD' ? '邮箱或登录密码错误。' :
                                                             '出现未知错误。'
       };
     case FIND:
@@ -218,13 +218,13 @@ export default (state=init, action) => {
       return {
         ...state,
         finding: false,
-        find_msg: '重置后密码已发送至邮箱。'
+        find_msg: '新密码已发送至邮箱。'
       };
     case FIND_FAIL:
       return {
         ...state,
         finding: false,
-        find_msg: action.error.err === 'NO_USER'  ? '该邮箱未注册。' : 
+        find_msg: action.error.err === 'NO_USER'  ? '该邮箱未注册。' :
                   action.error.err === 'SMTP_ERR' ? '密码重置邮件发送失败。' :
                                                     '出现未知错误。'
       }

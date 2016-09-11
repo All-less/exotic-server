@@ -41,7 +41,7 @@ class ChangePasswordForm extends React.Component {
                !is.email(val) ? '邮箱地址不合法。' :
                                 '';
       case 'newpass':
-        return !val             ? '此项为必填项。' : 
+        return !val             ? '此项为必填项。' :
                !regex.test(val) ? '密码长度可为8至20位，其中必须包含数字和字母组合。' :
                                   '';
       case 'oldpass':
@@ -71,6 +71,12 @@ class ChangePasswordForm extends React.Component {
     this.setState({ fields });
   }
 
+  handleKey(event) {
+    if (event.keyCode === 13) {
+      this.handleChangeClick();
+      return
+    }
+  }
   render() {
     const { email, oldpass, newpass } = this.state.fields;
     return (
@@ -81,7 +87,9 @@ class ChangePasswordForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-envelope-o fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="text" placeholder="请输入邮箱地址"
-                           onChange={this.handleChange.bind(this, 'email')} onBlur={this.handleBlur.bind(this, 'email')}/>
+                           onChange={this.handleChange.bind(this, 'email')}
+                           onBlur={this.handleBlur.bind(this, 'email')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(email.touched && email.error) || '　'}</HelpBlock>
           </FormGroup>,
@@ -89,7 +97,9 @@ class ChangePasswordForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-unlock fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="password" placeholder="请输入旧登录密码"
-                           onChange={this.handleChange.bind(this, 'oldpass')} onBlur={this.handleBlur.bind(this, 'oldpass')}/>
+                           onChange={this.handleChange.bind(this, 'oldpass')}
+                           onBlur={this.handleBlur.bind(this, 'oldpass')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(oldpass.touched && oldpass.error) || '　'}</HelpBlock>
           </FormGroup>,
@@ -97,7 +107,9 @@ class ChangePasswordForm extends React.Component {
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-lock fa-fw" aria-hidden="true"/></InputGroup.Addon>
               <FormControl type="password" placeholder="请输入新登录密码"
-                           onChange={this.handleChange.bind(this, 'newpass')} onBlur={this.handleBlur.bind(this, 'newpass')}/> 
+                           onChange={this.handleChange.bind(this, 'newpass')}
+                           onBlur={this.handleBlur.bind(this, 'newpass')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(newpass.touched && newpass.error) || '　'}</HelpBlock>
           </FormGroup>,

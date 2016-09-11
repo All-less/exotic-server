@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import QueueAnim from 'rc-queue-anim';
 
 import Buttons from './Buttons';
 import Switches from './Switches';
@@ -17,15 +18,17 @@ class Panel extends React.Component {
   render() {
     return (
       <div id="left">
-        { !this.props.setting ? 
+        { !this.props.setting ?
             <div id="left_contain">
-              <Buttons />
-              <Switches />
-              <Upload />
-              <Comment />
-              {/*
-              <KeyStroke />
-              */}
+              <QueueAnim type="bottom">
+                <Buttons key="buttons"/>
+                <Switches key="switches"/>
+                <Upload key="upload"/>
+                <Comment key="comment"/>
+                {/*
+                <KeyStroke />
+                */}
+             </QueueAnim>
             </div>
           :
             <div id="left_contain">

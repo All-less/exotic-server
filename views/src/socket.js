@@ -15,35 +15,36 @@ import { push } from 'react-router-redux';
 import { addBullet } from './redux/barrage';
 
 const types = [
-    'ACT_ACQUIRE', 
-    'ACT_RELEASE', 
-    'ACT_BROADCAST', 
-    'ACT_AUTH', 
-    'ACT_SYNC', 
+    'ACT_ACQUIRE',
+    'ACT_RELEASE',
+    'ACT_BROADCAST',
+    'ACT_AUTH',
+    'ACT_SYNC',
     'ACT_CHANGE_MODE',
-    'STAT_AUTH_SUCC', 
-    'STAT_AUTH_FAIL', 
-    'STAT_INPUT', 
-    'STAT_OUTPUT', 
-    'STAT_UPLOADED', 
+    'STAT_AUTH_SUCC',
+    'STAT_AUTH_FAIL',
+    'STAT_INPUT',
+    'STAT_OUTPUT',
+    'STAT_UPLOADED',
     'STAT_DOWNLOADED',
-    'STAT_PROGRAMMED', 
-    'OP_BTN_DOWN', 
-    'OP_BTN_UP', 
-    'OP_SW_OPEN', 
-    'OP_SW_CLOSE', 
-    'OP_PROG', 
-    'INFO_USER_CHANGED', 
-    'INFO_DISCONN', 
+    'STAT_PROGRAMMED',
+    'STAT_DOWNLOAD_FAIL',
+    'OP_BTN_DOWN',
+    'OP_BTN_UP',
+    'OP_SW_OPEN',
+    'OP_SW_CLOSE',
+    'OP_PROG',
+    'INFO_USER_CHANGED',
+    'INFO_DISCONN',
     'INFO_BROADCAST',
     'INFO_MODE_CHANGED',
     'INFO_VIDEO_URL'
 ]
 
 types.forEach((val, index) => {
-  /* 
-   * note that this statement will be executed 
-   * in ES5 environment. 
+  /*
+   * note that this statement will be executed
+   * in ES5 environment.
    */
   eval(`window.${val} = ${index}`);
 });
@@ -120,12 +121,13 @@ const reconnect_socket = () => {
         store.dispatch(updateInput(data.buttons, data.switches));
         break;
       case STAT_DOWNLOADED:
-        store.dispatch(displayError('bit文件已上传成功'));
-        store.dispatch(setUploadStatus(''))
+        store.dispatch(setUploadStatus('上传成功'));
         store.dispatch(toggleUpload(true));
         break;
+      case STAT_DOWNLOAD_FAIL:
+        store.dispatch(setUploadStatus('上传失败，请重试'));
       case STAT_PROGRAMMED:
-        store.dispatch(displayError('bit文件烧录成功'));
+        store.dispatch(setUploadStatus('烧录成功'));
         break;
       case INFO_MODE_CHANGED:
         if (data.mode === 'video') {
@@ -159,7 +161,7 @@ const remote = {
   openSwitch: (id) => {
     store.dispatch(setSwitchStatus('数据发送中'));
     send({
-      type: OP_SW_OPEN, 
+      type: OP_SW_OPEN,
       id
     });
   },

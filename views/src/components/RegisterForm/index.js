@@ -24,7 +24,7 @@ const regex = /(?=.*\d)(?=.*[a-zA-Z])[\da-zA-Z]{8,20}/;
     registering: state.account.registering,
     reg_msg: state.account.reg_msg
   }),
-  { 
+  {
     changeForm, verifyEmail, register
   }
 )
@@ -59,7 +59,7 @@ class RegisterForm extends React.Component {
                !is.email(val) ? '邮箱地址不合法。' :
                                 '';
       case 'password':
-        return !val             ? '此项为必填项。' : 
+        return !val             ? '此项为必填项。' :
                !regex.test(val) ? '密码长度可为8至20位，其中必须包含数字和字母组合。' :
                                   '';
       case 'vcode':
@@ -83,6 +83,13 @@ class RegisterForm extends React.Component {
     this.setState({ fields });
   }
 
+  handleKey(event) {
+    if (event.keyCode === 13) {
+      this.handleRegisterClick();
+      return
+    }
+  }
+
   render() {
     const { email, password, vcode } = this.state.fields;
     return (
@@ -92,27 +99,31 @@ class RegisterForm extends React.Component {
           <FormGroup controlId="formBasicText" key="input-mail">
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-envelope-o fa-fw" aria-hidden="true"/></InputGroup.Addon>
-              <FormControl type="text" placeholder="请输入邮箱地址" 
-                           onChange={this.handleChange.bind(this, 'email')} onBlur={this.handleBlur.bind(this, 'email')}/>
+              <FormControl type="text" placeholder="请输入邮箱地址"
+                           onChange={this.handleChange.bind(this, 'email')}
+                           onBlur={this.handleBlur.bind(this, 'email')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(email.touched && email.error) || '　'}</HelpBlock>
           </FormGroup>,
           <FormGroup controlId="formBasicText" key="input-pass">
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-lock fa-fw" aria-hidden="true"/></InputGroup.Addon>
-              <FormControl type="password" placeholder="请输入登录密码" 
-                           onChange={this.handleChange.bind(this, 'password')} onBlur={this.handleBlur.bind(this, 'password')}/> 
+              <FormControl type="password" placeholder="请输入登录密码"
+                           onChange={this.handleChange.bind(this, 'password')}
+                           onBlur={this.handleBlur.bind(this, 'password')}
+                           onKeyDown={this.handleKey.bind(this)}/>
             </InputGroup>
             <HelpBlock>{(password.touched && password.error) || '　'}</HelpBlock>
           </FormGroup>,
           <FormGroup controlId="formBasicText" key="input-vcode">
             <InputGroup>
               <InputGroup.Addon><i className="fa fa-key fa-fw" aria-hidden="true"/></InputGroup.Addon>
-              <FormControl type="text" placeholder="请输入验证码" 
-                           onChange={this.handleChange.bind(this, 'vcode')} onBlur={this.handleBlur.bind(this, 'vcode')}/> 
+              <FormControl type="text" placeholder="请输入验证码"
+                           onChange={this.handleChange.bind(this, 'vcode')} onBlur={this.handleBlur.bind(this, 'vcode')}/>
               <InputGroup.Button>
                 <Button onClick={this.handleVcodeClick.bind(this)} disabled={this.props.vcode_sent || !!email.error}>
-                  {this.props.vcode_sent ?  this.props.vcode_count + '秒后重新获取' : '获取验证码'} 
+                  {this.props.vcode_sent ?  this.props.vcode_count + '秒后重新获取' : '获取验证码'}
                   {this.props.vcode_sending && <i className="fa fa-spinner fa-pulse fa-fw" />}
                 </Button>
               </InputGroup.Button>
