@@ -126,6 +126,7 @@ const reconnect_socket = () => {
         break;
       case STAT_DOWNLOAD_FAIL:
         store.dispatch(setUploadStatus('上传失败，请重试'));
+        break;
       case STAT_PROGRAMMED:
         store.dispatch(setUploadStatus('烧录成功'));
         break;
