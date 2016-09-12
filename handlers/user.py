@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 import logging
 from email.mime.text import MIMEText
 
@@ -20,7 +20,7 @@ logger = logging.getLogger('server.' + __name__)
 
 
 class LoginHandler(BaseHandler):
-    
+
     async def post(self):
         email = self.get_json_argument('email')
         user = await User.find_one({'email': email})
@@ -33,13 +33,13 @@ class LoginHandler(BaseHandler):
             return
         self.set_secure_cookie('user', email, 0.01)
         devices = await get_authed_list()
-        self.succ({'status': 
+        self.succ({'status':
             {'devices': devices}
         })
 
 
 class LogoutHandler(BaseHandler):
-    
+
     def post(self):
         self.clear_cookie('user')
         self.succ({})
@@ -55,9 +55,11 @@ class RegisterHandler(BaseHandler):
             return
         salt, cooked = digest_password(self.get_json_argument('password'))
         await User.insert({'email': email, 'password': cooked, 'salt': salt})
+        self.set_secure_cookie('user', email, 0.01)
         devices = await get_authed_list()
-        self.succ({'status': 
-            {'devices': devices}
+        self.succ({'status':
+            {'devices': devices,
+             'user': email}
         })
 
 
@@ -89,7 +91,7 @@ class EmailHandler(BaseHandler):
 
 
 class FindPasswordHandler(BaseHandler):
-    
+
     async def post(self):
         email = self.get_json_argument('email')
         user = await User.find_one({'email': email})
@@ -116,7 +118,7 @@ class FindPasswordHandler(BaseHandler):
 
 
 class ChangePasswordHandler(BaseHandler):
-    
+
     async def post(self):
         email = self.get_json_argument('email')
         user = await User.find_one({'email': email})
@@ -139,7 +141,7 @@ class StatusHandler(BaseHandler):
         if user:
             user = user.decode('utf-8')
             devices = await get_authed_list()
-            self.succ({'status': 
+            self.succ({'status':
                 {'devices': devices,
                  'user': user}
             })
