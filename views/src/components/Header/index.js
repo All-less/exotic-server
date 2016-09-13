@@ -17,6 +17,14 @@ import remote from '../../socket';
   }
 )
 class Header extends React.Component {
+
+  handleLogout() {
+    if (this.props.acquired) {
+      remote.release();
+    }
+    this.props.logout();
+  }
+
   render() {
     return (
       <header className={style.wrapper}>
@@ -28,11 +36,11 @@ class Header extends React.Component {
           <li>
             <a onClick={this.props.acquired ? remote.release :
                         this.props.occupied ? null : remote.acquire}>
-             { this.props.acquired ? '释放控制' : 
+             { this.props.acquired ? '释放控制' :
                this.props.occupied ? '已被占用' :'获取控制' }
             </a>
           </li>
-          <li><a onClick={this.props.logout}>注销登录</a></li>
+          <li><a onClick={this.handleLogout.bind(this)}>注销登录</a></li>
           <li><a href="#">使用帮助</a></li>
         </ul>
       </header>
